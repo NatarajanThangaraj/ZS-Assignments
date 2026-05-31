@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Split It! — Interactive Assignment</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #eef0f5;
+  font-family: 'Roboto', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 80px;
+}
+
+/* PAGE TITLE */
+.page-title { text-align:center; margin-bottom:32px; }
+.page-title h1 {
+  font-family:'Google Sans',sans-serif;
+  font-size:1.85rem; font-weight:700; color:#1a1a2e; letter-spacing:-0.5px;
+}
+.page-title p { font-size:13.5px; color:#777; margin-top:5px; }
+
+/* PHASE TABS */
+.phase-tabs {
+  display:flex; background:#fff; border-radius:14px;
+  padding:5px; margin-bottom:36px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+.tab-btn {
+  padding:10px 26px; border:none; background:transparent;
+  font-family:'Google Sans',sans-serif; font-size:13.5px; font-weight:500;
+  color:#888; border-radius:10px; cursor:pointer; transition:all 0.2s;
+}
+.tab-btn.active { background:#1a73e8; color:#fff; box-shadow:0 2px 8px rgba(26,115,232,0.3); }
+
+/* LAYOUT */
+.demo-layout {
+  display:flex; align-items:flex-start; gap:48px;
+  justify-content:center; width:100%; max-width:920px;
+}
+
+/* LEFT PANEL */
+.left-panel { flex:1; max-width:320px; }
+.panel-label {
+  font-family:'Google Sans',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase; color:#1a73e8; margin-bottom:8px;
+}
+.panel-title {
+  font-family:'Google Sans',sans-serif; font-size:1.35rem; font-weight:700;
+  color:#1a1a2e; line-height:1.3; margin-bottom:10px;
+}
+.panel-desc { font-size:13.5px; color:#555; line-height:1.8; margin-bottom:20px; }
+
+.ctags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:22px; }
+.ctag {
+  background:#e8f0fe; color:#1a73e8; border:1px solid #c5d8fc;
+  font-size:11.5px; font-weight:500; padding:4px 11px; border-radius:8px;
+  font-family:'Google Sans',sans-serif;
+}
+
+.steps-list { display:flex; flex-direction:column; gap:0; }
+.step-item { display:flex; gap:14px; align-items:flex-start; padding-bottom:20px; position:relative; }
+.step-item:not(:last-child)::before {
+  content:''; position:absolute; left:13px; top:28px;
+  width:2px; height:calc(100% - 10px); background:#e0e0e0;
+}
+.step-dot {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11.5px; font-weight:700; flex-shrink:0; z-index:1;
+  font-family:'Google Sans',sans-serif;
+}
+.step-dot.g { background:#e8f5e9; color:#2e7d32; border:2px solid #a5d6a7; }
+.step-dot.b { background:#e8f0fe; color:#1a73e8; border:2px solid #90b4f5; }
+.step-text strong { display:block; font-size:13px; font-weight:700; color:#1a1a2e; margin-bottom:2px; font-family:'Google Sans',sans-serif; }
+.step-text span { font-size:12.5px; color:#666; line-height:1.65; }
+
+/* PHONE FRAME */
+.phone-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; }
+.phone {
+  width:318px; background:#fff; border-radius:44px;
+  box-shadow: 0 0 0 10px #1c1c2e, 0 0 0 12px #2d2d42, 0 32px 80px rgba(0,0,0,0.4);
+  overflow:hidden; position:relative;
+}
+.phone-notch {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:110px; height:26px; background:#1c1c2e;
+  border-radius:0 0 18px 18px; z-index:10;
+}
+.phone-screen { min-height:600px; position:relative; overflow:hidden; background:#fff; }
+
+/* STATUS BAR */
+.gpay-statusbar {
+  background:#1a73e8; padding:30px 18px 6px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.gpay-statusbar .time { color:#fff; font-size:11.5px; font-weight:600; }
+.gpay-statusbar .icons { color:#fff; font-size:10px; letter-spacing:1px; }
+
+/* TOP BAR */
+.gpay-topbar {
+  background:#1a73e8; padding:2px 16px 16px;
+  display:flex; align-items:center; gap:12px;
+}
+.gpay-back { color:#fff; font-size:19px; cursor:pointer; }
+.gpay-topbar-title { color:#fff; font-family:'Google Sans',sans-serif; font-size:15px; font-weight:500; }
+
+/* SCREENS */
+.screen { display:none; }
+.screen.active { display:block; }
+
+/* ═══════════════════════════════
+   PHASE 1 — SCREEN A: INPUT
+   ═══════════════════════════════ */
+.p1-body { padding:22px 18px 20px; }
+
+.input-section-label {
+  font-family:'Google Sans',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:1.4px; text-transform:uppercase; color:#777;
+  margin-bottom:9px; margin-top:18px;
+}
+.input-section-label:first-child { margin-top:0; }
+
+.gpay-input-box {
+  display:flex; align-items:center; gap:10px;
+  background:#f3f4f8; border-radius:14px; padding:13px 16px;
+  border:1.5px solid #e0e3eb;
+  transition:border-color 0.2s;
+}
+.gpay-input-box:focus-within { border-color:#1a73e8; background:#fff; }
+.gpay-input-box .iico { font-size:18px; flex-shrink:0; }
+.gpay-input-box input {
+  flex:1; background:transparent; border:none; outline:none;
+  font-family:'Google Sans',sans-serif; font-size:16px; font-weight:600;
+  color:#1a1a2e;
+}
+.gpay-input-box input::placeholder { color:#bbb; font-weight:400; }
+
+/* INCLUSION TOGGLE */
+.inclusion-box {
+  background:#f3f4f8; border-radius:14px; padding:14px 16px;
+  border:1.5px solid #e0e3eb; margin-top:0;
+}
+.inclusion-q {
+  font-family:'Google Sans',sans-serif; font-size:13px; font-weight:500;
+  color:#333; margin-bottom:10px; line-height:1.5;
+}
+.toggle-opts { display:flex; gap:8px; }
+.tog-btn {
+  flex:1; padding:9px 0; border-radius:10px; border:1.5px solid #dde0eb;
+  background:#fff; font-family:'Google Sans',sans-serif;
+  font-size:12.5px; font-weight:600; color:#888; cursor:pointer;
+  transition:all 0.18s; text-align:center;
+}
+.tog-btn.sel-yes { background:#e8f0fe; border-color:#1a73e8; color:#1a73e8; }
+.tog-btn.sel-no  { background:#fce8e6; border-color:#d93025; color:#d93025; }
+
+/* SPLIT BUTTON */
+.gpay-split-btn {
+  width:100%; background:#1a73e8; color:#fff; border:none;
+  border-radius:24px; padding:14px;
+  font-family:'Google Sans',sans-serif; font-size:14.5px; font-weight:600;
+  cursor:pointer; transition:background 0.2s; margin-top:20px;
+  letter-spacing:0.2px;
+}
+.gpay-split-btn:hover { background:#1558b0; }
+.gpay-split-btn:disabled { background:#c5cad8; cursor:not-allowed; }
+
+/* ═══════════════════════════════
+   PHASE 1 — SCREEN B: SUMMARY
+   ═══════════════════════════════ */
+.split-hero {
+  background:linear-gradient(140deg,#1a73e8 0%,#0d47a1 100%);
+  padding:22px 20px 26px; text-align:center;
+}
+.split-hero .sh-label {
+  color:rgba(255,255,255,0.72); font-family:'Google Sans',sans-serif;
+  font-size:11px; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:4px;
+}
+.split-hero .sh-amount {
+  color:#fff; font-family:'Google Sans',sans-serif;
+  font-size:34px; font-weight:700; margin-bottom:4px;
+}
+.split-hero .sh-sub {
+  color:rgba(255,255,255,0.8); font-family:'Google Sans',sans-serif;
+  font-size:12.5px;
+}
+.split-hero .sh-sub strong { color:#fff; }
+
+/* INCLUSION BADGE */
+.inclusion-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(255,255,255,0.15); border-radius:20px;
+  padding:4px 12px; margin-top:8px;
+  font-family:'Google Sans',sans-serif; font-size:11px; color:rgba(255,255,255,0.9);
+}
+
+/* MEMBER CARDS */
+.summary-body { padding:14px 14px 8px; }
+
+.members-card {
+  background:#fff; border:1px solid #e8eaed;
+  border-radius:14px; overflow:hidden; margin-bottom:10px;
+}
+.members-card-hdr {
+  background:#f8f9fa; padding:10px 14px;
+  font-family:'Google Sans',sans-serif; font-size:10.5px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; color:#999;
+}
+.member-row {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; border-top:1px solid #f2f2f2;
+}
+.member-row:first-of-type { border-top:none; }
+.mav {
+  width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; color:#fff; flex-shrink:0;
+  font-family:'Google Sans',sans-serif;
+}
+.mname { flex:1; font-family:'Google Sans',sans-serif; font-size:13px; font-weight:500; color:#1a1a2e; }
+.mamt  { font-family:'Google Sans',sans-serif; font-size:13.5px; font-weight:700; color:#1a73e8; }
+
+/* STAT CHIPS — matches screenshot exactly */
+.stat-chips-row { display:flex; gap:8px; padding:0 0 12px; }
+.stat-chip {
+  flex:1; background:#eef2fd; border-radius:12px; padding:12px 8px; text-align:center;
+}
+.stat-chip .sv {
+  font-family:'Google Sans',sans-serif; font-size:15px; font-weight:700; color:#1a73e8;
+}
+.stat-chip .sl {
+  font-family:'Google Sans',sans-serif; font-size:10.5px; color:#888; margin-top:3px;
+}
+
+/* ═══════════════════════════════
+   PHASE 2 — SCREEN C: ENTER
+   ═══════════════════════════════ */
+.p2-body { padding:20px 18px; }
+.name-fields-wrap { display:flex; flex-direction:column; gap:9px; margin:10px 0 16px; }
+.name-field-row {
+  display:flex; align-items:center; gap:10px;
+  background:#f3f4f8; border-radius:12px; padding:10px 14px;
+  border:1.5px solid #e0e3eb; transition:border-color 0.2s;
+}
+.name-field-row:focus-within { border-color:#1a73e8; background:#fff; }
+.nfav {
+  width:26px; height:26px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+  font-family:'Google Sans',sans-serif;
+}
+.name-field-row input {
+  flex:1; background:transparent; border:none; outline:none;
+  font-family:'Google Sans',sans-serif; font-size:13.5px; color:#1a1a2e;
+}
+.name-field-row input::placeholder { color:#c0c4ce; }
+
+/* ═══════════════════════════════
+   PHASE 2 — SCREEN D: TRACKER
+   ═══════════════════════════════ */
+.tracker-hero {
+  background:linear-gradient(135deg,#0a7955 0%,#1aad76 100%);
+  padding:18px 18px 22px;
+}
+.tracker-top-row { display:flex; justify-content:space-between; margin-bottom:14px; }
+.thr-block .tl { color:rgba(255,255,255,0.72); font-family:'Google Sans',sans-serif; font-size:10.5px; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px; }
+.thr-block .tv { color:#fff; font-family:'Google Sans',sans-serif; font-size:18px; font-weight:700; }
+.prog-wrap { background:rgba(255,255,255,0.25); border-radius:100px; height:7px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:100px; background:#fff; transition:width 0.5s cubic-bezier(.4,0,.2,1); }
+.prog-row { display:flex; justify-content:space-between; margin-top:5px; }
+.prog-row span { font-family:'Google Sans',sans-serif; font-size:10.5px; color:rgba(255,255,255,0.75); }
+
+.tracker-body { padding:12px 14px; }
+.filter-row { display:flex; gap:6px; margin-bottom:12px; }
+.ftab {
+  flex:1; padding:7px 0; border:1.5px solid #e0e3eb;
+  background:#fff; border-radius:10px;
+  font-family:'Google Sans',sans-serif; font-size:11.5px; font-weight:600;
+  color:#999; cursor:pointer; text-align:center; transition:all 0.15s;
+}
+.ftab.fa { background:#e8f0fe; border-color:#90b4f5; color:#1a73e8; }
+.ftab.fp { background:#e8f5e9; border-color:#81c784; color:#2e7d32; }
+.ftab.fn { background:#fff3e0; border-color:#ffb74d; color:#e65100; }
+
+.track-list { display:flex; flex-direction:column; gap:7px; }
+.track-row {
+  display:flex; align-items:center; gap:10px;
+  background:#fff; border:1.5px solid #e8eaed;
+  border-radius:12px; padding:10px 12px; transition:all 0.3s;
+}
+.track-row.is-paid { background:#f1f8f1; border-color:#a5d6a7; }
+.trav {
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.trname { flex:1; font-family:'Google Sans',sans-serif; font-size:13px; font-weight:500; color:#1a1a2e; }
+.tramt  { font-family:'Google Sans',sans-serif; font-size:12px; font-weight:600; color:#888; margin-right:8px; }
+.trstatus {
+  font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;
+  border:none; cursor:pointer; font-family:'Google Sans',sans-serif; transition:all 0.15s;
+}
+.trstatus.pend { background:#fff3e0; color:#e65100; }
+.trstatus.paid { background:#e8f5e9; color:#2e7d32; cursor:default; }
+
+.empty-filter { text-align:center; color:#ccc; font-family:'Google Sans',sans-serif; font-size:12.5px; padding:22px 0; }
+
+/* RESET */
+.reset-link {
+  display:block; text-align:center; padding:12px 0 16px;
+  font-family:'Google Sans',sans-serif; font-size:12px; color:#1a73e8;
+  cursor:pointer; text-decoration:underline;
+}
+
+.phone-instruction { font-size:12px; color:#999; text-align:center; max-width:280px; line-height:1.65; }
+
+/* COLORS */
+.c0{background:#1a73e8}.c1{background:#e91e63}.c2{background:#2e7d32}
+.c3{background:#f57c00}.c4{background:#6a1b9a}.c5{background:#00838f}
+.c6{background:#ad1457}.c7{background:#558b2f}
+
+@media(max-width:760px){
+  .demo-layout{flex-direction:column;align-items:center;}
+  .left-panel{max-width:318px;}
+}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>💸 Let's Pay!</h1>
+  <p>Inspired by Google Pay  · Phase 1 &amp; 2</p>
+</div>
+
+<div class="phase-tabs">
+  <button class="tab-btn active" onclick="switchPhase(1)">Phase 1 — Split Calculator</button>
+  <button class="tab-btn"        onclick="switchPhase(2)">Phase 2 — Track Payments</button>
+</div>
+
+<!-- ═══════════════ PHASE 1 ═══════════════ -->
+<div id="phase1" class="demo-layout">
+
+  <div class="left-panel">
+    <div class="panel-label">✅ Phase 1</div>
+    <div class="panel-title">The Split Calculator</div>
+    <div class="panel-desc">Arun paid ₹900 for dinner. Enter the total bill, how many members are splitting, and whether the payer is included — the app calculates each person's exact share.</div>
+    <div class="ctags">
+      <span class="ctag">Input / Output</span>
+      <span class="ctag">Data Types</span>
+      <span class="ctag">Math Operations</span>
+      <span class="ctag">If / Else</span>
+    </div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-dot g">01</div>
+        <div class="step-text"><strong>Enter Bill Amount</strong><span>Type the total bill amount in ₹.</span></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot g">02</div>
+        <div class="step-text"><strong>Set Member Count</strong><span>How many people are in this split?</span></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot g">03</div>
+        <div class="step-text"><strong>Inclusion Check</strong><span>Is the person who paid also included in the split, or only the others?</span></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot g">04</div>
+        <div class="step-text"><strong>View Split Summary</strong><span>See each person's share, total members, total pending, and per-head amount.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- SCREEN A: Input -->
+        <div id="p1-input" class="screen active">
+          <div class="gpay-statusbar">
+            <span class="time" id="clk1">9:41</span>
+            <span class="icons">▲ ▲ 🔋</span>
+          </div>
+          <div class="gpay-topbar">
+            <span class="gpay-back">←</span>
+            <span class="gpay-topbar-title">Split Bill</span>
+          </div>
+          <div class="p1-body">
+
+            <div class="input-section-label">BILL AMOUNT (₹)</div>
+            <div class="gpay-input-box">
+              <span class="iico">💰</span>
+              <input type="number" id="p1-amt" placeholder="e.g. 900" min="1" oninput="p1Check()"/>
+            </div>
+
+            <div class="input-section-label" style="margin-top:18px;">NUMBER OF MEMBERS</div>
+            <div class="gpay-input-box">
+              <span class="iico">👥</span>
+              <input type="number" id="p1-mem" placeholder="e.g. 3" min="2" max="8" oninput="p1Check()"/>
+            </div>
+
+            <div class="input-section-label" style="margin-top:18px;">ARE YOU INCLUDED IN THE SPLIT?</div>
+            <div class="inclusion-box">
+              <div class="inclusion-q">Is the person who paid the bill also paying their own share?</div>
+              <div class="toggle-opts">
+                <button class="tog-btn" id="tog-yes" onclick="setInclusion(true)">✅ Yes, include me</button>
+                <button class="tog-btn" id="tog-no"  onclick="setInclusion(false)">❌ No, others only</button>
+              </div>
+            </div>
+
+            <button class="gpay-split-btn" id="p1-go" onclick="showP1Summary()" disabled>
+              Split Equally →
+            </button>
+          </div>
+        </div>
+
+        <!-- SCREEN B: Summary -->
+        <div id="p1-summary" class="screen">
+          <div class="gpay-statusbar">
+            <span class="time" id="clk2">9:41</span>
+            <span class="icons">▲ ▲ 🔋</span>
+          </div>
+          <div class="gpay-topbar">
+            <span class="gpay-back" onclick="goBack('p1-input','p1-summary')" style="cursor:pointer;">←</span>
+            <span class="gpay-topbar-title">Split Summary</span>
+          </div>
+          <div class="split-hero">
+            <div class="sh-label">TOTAL BILL</div>
+            <div class="sh-amount" id="sb-total">₹0</div>
+            <div class="sh-sub">Each person pays <strong id="sb-per">₹0</strong></div>
+            <div class="inclusion-badge" id="sb-badge">👤 Payer included</div>
+          </div>
+          <div class="summary-body">
+            <div class="members-card">
+              <div class="members-card-hdr">👥 Members &amp; Shares</div>
+              <div id="sb-list"></div>
+            </div>
+            <div class="stat-chips-row">
+              <div class="stat-chip">
+                <div class="sv" id="sb-count">0</div>
+                <div class="sl">Members</div>
+              </div>
+              <div class="stat-chip">
+                <div class="sv" id="sb-pending">₹0</div>
+                <div class="sl">Total Pending</div>
+              </div>
+              <div class="stat-chip">
+                <div class="sv" id="sb-perhead">₹0</div>
+                <div class="sl">Per Head</div>
+              </div>
+            </div>
+          </div>
+          <span class="reset-link" onclick="resetP1()">← Start Over</span>
+        </div>
+
+      </div>
+    </div>
+    <div class="phone-instruction">Enter bill amount, member count, choose inclusion — then tap <strong>Split Equally</strong></div>
+  </div>
+
+</div><!-- /phase1 -->
+
+
+<!-- ═══════════════ PHASE 2 ═══════════════ -->
+<div id="phase2" class="demo-layout" style="display:none;">
+
+  <div class="left-panel">
+    <div class="panel-label">✅ Phase 2</div>
+    <div class="panel-title">Track the Payments</div>
+    <div class="panel-desc">Everyone knows their share. Now track who has actually paid Arun back — name by name, with a live pending balance and paid/pending filter views.</div>
+    <div class="ctags">
+      <span class="ctag">Lists / Arrays</span>
+      <span class="ctag">Dictionaries</span>
+      <span class="ctag">Loops</span>
+      <span class="ctag">If / Else</span>
+    </div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-dot b">01</div>
+        <div class="step-text"><strong>Enter Bill &amp; Member Count</strong><span>Set the total bill and how many people.</span></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot b">02</div>
+        <div class="step-text"><strong>Enter Each Name</strong><span>Type the name of every person in the split.</span></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot b">03</div>
+        <div class="step-text"><strong>See Equal Split</strong><span>Each person's share is calculated and shown clearly.</span></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot b">04</div>
+        <div class="step-text"><strong>Mark as Paid</strong><span>Tap Pending to mark a person as paid — balance updates live.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- SCREEN C: Enter -->
+        <div id="p2-input" class="screen active">
+          <div class="gpay-statusbar">
+            <span class="time">9:41</span>
+            <span class="icons">▲ ▲ 🔋</span>
+          </div>
+          <div class="gpay-topbar">
+            <span class="gpay-back">←</span>
+            <span class="gpay-topbar-title">Split Bill</span>
+          </div>
+          <div class="p2-body">
+            <div class="input-section-label" style="margin-top:0;">BILL AMOUNT (₹)</div>
+            <div class="gpay-input-box">
+              <span class="iico">💰</span>
+              <input type="number" id="p2-amt" placeholder="e.g. 900" min="1" oninput="buildNameFields()"/>
+            </div>
+
+            <div class="input-section-label" style="margin-top:16px;">NUMBER OF MEMBERS</div>
+            <div class="gpay-input-box">
+              <span class="iico">👥</span>
+              <input type="number" id="p2-mem" placeholder="e.g. 3" min="2" max="8" oninput="buildNameFields()"/>
+            </div>
+
+            <div id="p2-name-fields" class="name-fields-wrap"></div>
+
+            <button class="gpay-split-btn" id="p2-go" onclick="showTracker()" disabled>
+              Show Split &amp; Track →
+            </button>
+          </div>
+        </div>
+
+        <!-- SCREEN D: Tracker -->
+        <div id="p2-tracker" class="screen">
+          <div class="gpay-statusbar">
+            <span class="time">9:41</span>
+            <span class="icons">▲ ▲ 🔋</span>
+          </div>
+          <div class="gpay-topbar">
+            <span class="gpay-back" onclick="goBack('p2-input','p2-tracker')" style="cursor:pointer;">←</span>
+            <span class="gpay-topbar-title">Payment Tracker</span>
+          </div>
+          <div class="tracker-hero">
+            <div class="tracker-top-row">
+              <div class="thr-block">
+                <div class="tl">TOTAL BILL</div>
+                <div class="tv" id="tt-total">₹0</div>
+              </div>
+              <div class="thr-block" style="text-align:right;">
+                <div class="tl">PENDING</div>
+                <div class="tv" id="tt-pend">₹0</div>
+              </div>
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" id="tt-prog" style="width:0%"></div></div>
+            <div class="prog-row">
+              <span id="tt-pcount">0 paid</span>
+              <span id="tt-pct">0% collected</span>
+            </div>
+          </div>
+          <div class="tracker-body">
+            <div class="filter-row">
+              <button class="ftab fa" id="fa" onclick="setFilter('all')">All</button>
+              <button class="ftab"    id="fp" onclick="setFilter('paid')">✅ Paid</button>
+              <button class="ftab"    id="fn" onclick="setFilter('pending')">🕐 Pending</button>
+            </div>
+            <div id="track-list" class="track-list"></div>
+          </div>
+          <span class="reset-link" onclick="resetP2()">← Start Over</span>
+        </div>
+
+      </div>
+    </div>
+    <div class="phone-instruction">Enter bill, count, and each member's name — then tap <strong>Show Split &amp; Track</strong></div>
+  </div>
+
+</div><!-- /phase2 -->
+
+<script>
+/* ── CLOCK ── */
+function tick(){
+  const n=new Date(), t=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+  ['clk1','clk2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t;});
+}
+tick(); setInterval(tick,10000);
+
+/* ── TABS ── */
+function switchPhase(n){
+  document.getElementById('phase1').style.display=n===1?'flex':'none';
+  document.getElementById('phase2').style.display=n===2?'flex':'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
+}
+
+function goBack(show,hide){
+  document.getElementById(show).classList.add('active');
+  document.getElementById(hide).classList.remove('active');
+}
+
+/* ── COLORS / NAMES ── */
+const COLORS=['c0','c1','c2','c3','c4','c5','c6','c7'];
+const DEF_NAMES=['Arun','Priya','Karthik','Meena','Ravi','Deepa','Suresh','Lakshmi'];
+function fmtRupee(v){ return '₹'+parseFloat(v).toFixed(2); }
+
+/* ══════════════════════════
+   PHASE 1
+══════════════════════════ */
+let p1Incl = null; // true = payer included, false = others only
+
+function setInclusion(val){
+  p1Incl = val;
+  document.getElementById('tog-yes').className = 'tog-btn'+(val?' sel-yes':'');
+  document.getElementById('tog-no').className  = 'tog-btn'+(!val?' sel-no':'');
+  p1Check();
+}
+
+function p1Check(){
+  const amt = parseFloat(document.getElementById('p1-amt').value)||0;
+  const mem = parseInt(document.getElementById('p1-mem').value)||0;
+  document.getElementById('p1-go').disabled = !(amt>0 && mem>=2 && p1Incl!==null);
+}
+
+function showP1Summary(){
+  const total   = parseFloat(document.getElementById('p1-amt').value)||0;
+  const rawMem  = parseInt(document.getElementById('p1-mem').value)||0;
+  // if payer NOT included, split among members only (they owe the payer)
+  // if payer IS included, total splits equally including payer
+  const splitCount = p1Incl ? rawMem : rawMem;
+  const per = parseFloat((total / splitCount).toFixed(2));
+
+  document.getElementById('sb-total').textContent   = fmtRupee(total);
+  document.getElementById('sb-per').textContent     = fmtRupee(per);
+  document.getElementById('sb-count').textContent   = splitCount;
+  document.getElementById('sb-pending').textContent = fmtRupee(total);
+  document.getElementById('sb-perhead').textContent = fmtRupee(per);
+
+  const badge = document.getElementById('sb-badge');
+  badge.textContent = p1Incl ? '👤 Payer included in split' : '👤 Payer excluded — others only';
+
+  // Build member list
+  const list = document.getElementById('sb-list');
+  list.innerHTML='';
+  for(let i=0;i<splitCount;i++){
+    const name = DEF_NAMES[i]||('Member '+(i+1));
+    const isPayerRow = (i===0);
+    list.innerHTML+=`
+      <div class="member-row">
+        <div class="mav ${COLORS[i%COLORS.length]}">${name[0]}</div>
+        <div class="mname">${name}${isPayerRow&&p1Incl?' <span style="font-size:10px;color:#888;">(Payer)</span>':''}</div>
+        <div class="mamt">${fmtRupee(per)}</div>
+      </div>`;
+  }
+
+  document.getElementById('p1-input').classList.remove('active');
+  document.getElementById('p1-summary').classList.add('active');
+}
+
+function resetP1(){
+  p1Incl=null;
+  document.getElementById('p1-amt').value='';
+  document.getElementById('p1-mem').value='';
+  document.getElementById('tog-yes').className='tog-btn';
+  document.getElementById('tog-no').className='tog-btn';
+  document.getElementById('p1-go').disabled=true;
+  document.getElementById('p1-summary').classList.remove('active');
+  document.getElementById('p1-input').classList.add('active');
+}
+
+/* ══════════════════════════
+   PHASE 2
+══════════════════════════ */
+let p2Members = [];
+let p2Filter  = 'all';
+let p2Total   = 0;
+
+function buildNameFields(){
+  const count = Math.max(0, Math.min(8, parseInt(document.getElementById('p2-mem').value)||0));
+  const wrap  = document.getElementById('p2-name-fields');
+  wrap.innerHTML='';
+
+  if(count>=2){
+    const lbl = document.createElement('div');
+    lbl.className='input-section-label'; lbl.style.marginTop='16px';
+    lbl.textContent='MEMBER NAMES';
+    wrap.appendChild(lbl);
+
+    for(let i=0;i<count;i++){
+      wrap.innerHTML+=`
+        <div class="name-field-row">
+          <div class="nfav ${COLORS[i%COLORS.length]}">${i+1}</div>
+          <input type="text" id="p2n${i}" placeholder="${DEF_NAMES[i]||'Member '+(i+1)}" oninput="p2Check()"/>
+        </div>`;
+    }
+  }
+  p2Check();
+}
+
+function p2Check(){
+  const count = parseInt(document.getElementById('p2-mem').value)||0;
+  const amt   = parseFloat(document.getElementById('p2-amt').value)||0;
+  let ok = count>=2 && amt>0;
+  for(let i=0;i<count;i++){
+    const el=document.getElementById('p2n'+i);
+    if(!el||!el.value.trim()){ok=false;break;}
+  }
+  document.getElementById('p2-go').disabled=!ok;
+}
+
+function showTracker(){
+  const count = parseInt(document.getElementById('p2-mem').value)||0;
+  p2Total     = parseFloat(document.getElementById('p2-amt').value)||0;
+  const per   = parseFloat((p2Total/count).toFixed(2));
+
+  p2Members=[];
+  for(let i=0;i<count;i++){
+    const el=document.getElementById('p2n'+i);
+    const name=(el&&el.value.trim())||(DEF_NAMES[i]||'Member '+(i+1));
+    p2Members.push({name,paid:false,amount:per,color:COLORS[i%COLORS.length]});
+  }
+
+  document.getElementById('tt-total').textContent=fmtRupee(p2Total);
+  p2Filter='all';
+  renderTracker();
+
+  document.getElementById('p2-input').classList.remove('active');
+  document.getElementById('p2-tracker').classList.add('active');
+}
+
+function renderTracker(){
+  const paidCount = p2Members.filter(m=>m.paid).length;
+  const paidAmt   = p2Members.filter(m=>m.paid).reduce((s,m)=>s+m.amount,0);
+  const pendAmt   = p2Total - paidAmt;
+  const pct       = p2Total>0 ? Math.round(paidAmt/p2Total*100) : 0;
+
+  document.getElementById('tt-pend').textContent   = fmtRupee(pendAmt);
+  document.getElementById('tt-prog').style.width   = pct+'%';
+  document.getElementById('tt-pcount').textContent = paidCount+' paid';
+  document.getElementById('tt-pct').textContent    = pct+'% collected';
+
+  // filter tabs
+  document.getElementById('fa').className='ftab'+(p2Filter==='all'    ?' fa':'');
+  document.getElementById('fp').className='ftab'+(p2Filter==='paid'   ?' fp':'');
+  document.getElementById('fn').className='ftab'+(p2Filter==='pending'?' fn':'');
+
+  const show = p2Members.filter(m=>{
+    if(p2Filter==='paid')    return m.paid;
+    if(p2Filter==='pending') return !m.paid;
+    return true;
+  });
+
+  const list=document.getElementById('track-list');
+  list.innerHTML='';
+  if(!show.length){
+    list.innerHTML='<div class="empty-filter">No members in this filter</div>';
+    return;
+  }
+  show.forEach(m=>{
+    const idx=p2Members.indexOf(m);
+    list.innerHTML+=`
+      <div class="track-row${m.paid?' is-paid':''}">
+        <div class="trav ${m.color}">${m.name[0].toUpperCase()}</div>
+        <div class="trname">${m.name}</div>
+        <div class="tramt">${fmtRupee(m.amount)}</div>
+        <button class="trstatus ${m.paid?'paid':'pend'}" onclick="markPaid(${idx})" ${m.paid?'disabled':''}>
+          ${m.paid?'✅ Paid':'Pending'}
+        </button>
+      </div>`;
+  });
+}
+
+function markPaid(idx){ p2Members[idx].paid=true; renderTracker(); }
+function setFilter(f){ p2Filter=f; renderTracker(); }
+
+function resetP2(){
+  p2Members=[]; p2Filter='all'; p2Total=0;
+  document.getElementById('p2-amt').value='';
+  document.getElementById('p2-mem').value='';
+  document.getElementById('p2-name-fields').innerHTML='';
+  document.getElementById('p2-go').disabled=true;
+  document.getElementById('p2-tracker').classList.remove('active');
+  document.getElementById('p2-input').classList.add('active');
+}
+</script>
+</body>
+</html>
