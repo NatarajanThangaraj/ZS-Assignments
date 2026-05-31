@@ -65,7 +65,7 @@ function cardHtml(s) {
   const tags = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
   const updated = s.updated ? formatDate(s.updated) : '';
   return `
-    <a class="card" href="${escapeAttr(s.slug)}/">
+    <a class="card" href="${escapeAttr(s.slug)}/index.html">
       <div class="thumb">${thumb}</div>
       <div class="body">
         <div class="title">${escapeHtml(s.title || s.slug)}</div>
