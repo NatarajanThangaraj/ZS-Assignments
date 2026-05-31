@@ -1,14 +1,16 @@
 # My Assignments — Hub
 
-A single-page hub that lists every assignment / mini-site stored as a folder in this repo. Hosted on **Zoho Catalyst Slate**. Each subfolder containing an `index.html` becomes a card on the hub automatically.
+A single-page hub that lists every assignment / mini-site stored as a folder in this repo. Each folder containing an `index.html` becomes a card on the hub. Add a folder, push to `main`, and it appears on the live site within a minute.
+
+**Hosted on GitHub Pages.** Plain static hosting — no SPA fallback, no framework detection, subfolder URLs (`/01-hello/`) resolve to the file inside (`01-hello/index.html`) the way you expect.
 
 ---
 
 ## How to add a new assignment
 
-1. **Create a new folder at the repo root.** Name it whatever you want — e.g. `02-todo-app`, `weather-widget`, `landing-page`.
-2. **Drop your `index.html` inside.** That's the only required file. CSS/JS/images can sit next to it as you like.
-3. *(Optional)* **Add `meta.json`** for a nicer card:
+1. **Create a folder at the repo root.** Name it whatever you want — e.g. `02-todo-app/`, `weather-widget/`, `landing-page/`.
+2. **Drop your `index.html` inside.** That's the only required file. CSS/JS/images can sit next to it.
+3. *(Optional)* **Add `meta.json`** to control the card:
    ```json
    {
      "title": "Todo App",
@@ -16,23 +18,22 @@ A single-page hub that lists every assignment / mini-site stored as a folder in 
      "tags": ["JS"]
    }
    ```
-   If `meta.json` is missing, the hub falls back to the HTML `<title>` and `<meta name="description">`.
-4. *(Optional)* **Add `thumbnail.png`** (or `.jpg` / `.svg`) for a card preview image. Falls back to `assets/default-thumb.svg`.
-5. **Commit and push to `main`.** The GitHub Actions workflow regenerates `sites.json`, commits it back, and deploys to Catalyst.
+   If `meta.json` is missing, the scanner reads the HTML `<title>` and `<meta name="description">`.
+4. *(Optional)* **Add `thumbnail.png`** (or `.jpg` / `.svg`) for the card preview image. Falls back to `assets/default-thumb.svg`.
+5. **Commit and push to `main`.** The GitHub Actions workflow regenerates `sites.json` and publishes the site.
 
-That's it. The new card shows up on the hub within a minute or two.
-
-### Example: adding a "Calculator" assignment
+### Worked example
 
 ```bash
 mkdir 02-calculator
 cat > 02-calculator/index.html <<'HTML'
-<!doctype html><title>Calculator</title>
-<meta name="description" content="A keyboard-accessible calculator.">
+<!doctype html>
+<title>Calculator</title>
+<meta name="description" content="Keyboard-accessible calculator.">
 <h1>Calculator</h1>
 HTML
 cat > 02-calculator/meta.json <<'JSON'
-{ "title": "Calculator", "description": "Keyboard-accessible calculator with full expression parsing.", "tags": ["JS"] }
+{ "title": "Calculator", "description": "Keyboard-accessible calculator.", "tags": ["JS"] }
 JSON
 git add 02-calculator
 git commit -m "Add calculator assignment"
@@ -41,44 +42,31 @@ git push
 
 ---
 
-## Local development
+## One-time GitHub Pages setup (do this once)
 
-```bash
-# Regenerate sites.json after adding/removing folders locally
-node scripts/build-sites-json.js
+1. Push this repo to GitHub if you haven't already.
+2. In the repo on GitHub: **Settings → Pages**.
+3. Under **Build and deployment → Source**, pick **GitHub Actions**.
+4. Done. The workflow in `.github/workflows/deploy.yml` will run on the next push to `main` and publish your site.
 
-# Serve the hub locally (any static server works)
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
+The live URL is `https://<your-username>.github.io/<repo-name>/`. It shows in the Actions tab once the first deploy finishes (look for the green check on the "build-and-deploy" job).
 
-Opening `index.html` directly via `file://` works for static HTML but `fetch('sites.json')` is blocked by the browser — always use a local server.
+No tokens, no CLI, no extra config.
 
 ---
 
-## One-time Catalyst setup (first deploy only)
+## Local development
 
-1. **Install the Catalyst CLI** locally:
-   ```bash
-   npm install -g zcatalyst-cli
-   ```
-2. **Log in and initialize the project** at the repo root:
-   ```bash
-   catalyst login
-   catalyst init
-   ```
-   When prompted, pick **Client (Slate)** as the component and point it at the current directory. This creates `.catalystrc` (do not commit it — already in `.gitignore`).
-3. **Generate a CI token** for GitHub Actions:
-   ```bash
-   catalyst auth:token --create
-   ```
-   Copy the JSON it prints.
-4. **Add GitHub secrets** at *repo → Settings → Secrets and variables → Actions → New repository secret*:
-   - `CATALYST_TOKEN` — paste the JSON from step 3
-   - `CATALYST_PROJECT_ID` — found in the Catalyst Console (Project Settings → General)
-5. **Push to main.** The workflow runs automatically: scans folders → updates `sites.json` → deploys to Catalyst Slate.
+```bash
+# Regenerate sites.json after adding/removing folders
+node scripts/build-sites-json.js
 
-The Slate URL appears in the workflow log and in the Catalyst Console under your project's Web Client.
+# Serve the hub locally
+python3 -m http.server 8000
+# open http://localhost:8000
+```
+
+Opening `index.html` directly via `file://` works for static HTML, but `fetch('sites.json')` is blocked by the browser — always use a local server.
 
 ---
 
@@ -87,25 +75,24 @@ The Slate URL appears in the workflow log and in the Catalyst Console under your
 ```
 .
 ├── index.html                  # The hub page
-├── sites.json                  # Auto-generated by scripts/build-sites-json.js
+├── sites.json                  # Auto-generated by the scanner
 ├── assets/
 │   ├── style.css               # Hub styles
 │   ├── app.js                  # Fetches sites.json, renders cards
-│   ├── logo.svg                # The red+blue mark
-│   └── default-thumb.svg       # Fallback card thumbnail
+│   ├── logo.svg                # The red + blue mark
+│   └── default-thumb.svg       # Card fallback thumbnail
 ├── scripts/
-│   └── build-sites-json.js     # Scans root folders, writes sites.json
-├── catalyst-config.json        # Catalyst Slate client config
-├── .catalystignore             # Files excluded from Catalyst deploy
-├── .github/workflows/deploy.yml # CI: build + deploy
-├── mockup-desktop.svg          # Design reference
-├── mockup-mobile.svg           # Design reference
-└── <your-folders>/             # Each one becomes a card
+│   └── build-sites-json.js     # Scans folders, writes sites.json
+├── .github/workflows/deploy.yml # CI: regen sites.json, publish to Pages
+├── mockup-desktop.svg          # Design reference (not deployed-but-harmless)
+├── mockup-mobile.svg
+├── README.md
+└── <your-assignment-folders>/  # Each one becomes a card
     ├── index.html              # Required
     ├── meta.json               # Optional
     └── thumbnail.png           # Optional
 ```
 
-## Deny-list (folders the scanner skips)
+### Folders the scanner skips
 
-`assets`, `scripts`, `node_modules`, `.git`, `.github`, `.catalyst`, `.zoho`, anything starting with `.`. Everything else with an `index.html` becomes an assignment.
+`assets`, `scripts`, `node_modules`, `.git`, `.github`, `.claude`, and anything starting with `.`. Everything else with an `index.html` becomes an assignment.

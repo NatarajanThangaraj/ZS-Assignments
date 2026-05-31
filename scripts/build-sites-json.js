@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Scans the repo root for assignment folders and writes sites.json.
-// A folder qualifies if it contains index.html and is not in the deny-list.
+// A folder qualifies if it contains index.html and isn't in DENY.
 
 const fs = require('fs');
 const path = require('path');
@@ -15,16 +15,14 @@ const DENY = new Set([
   'node_modules',
   '.git',
   '.github',
-  '.catalyst',
-  '.zoho',
+  '.claude',
 ]);
 
 function isAssignmentDir(name) {
   if (name.startsWith('.')) return false;
   if (DENY.has(name)) return false;
   const full = path.join(ROOT, name);
-  const stat = fs.statSync(full);
-  if (!stat.isDirectory()) return false;
+  if (!fs.statSync(full).isDirectory()) return false;
   return fs.existsSync(path.join(full, 'index.html'));
 }
 
