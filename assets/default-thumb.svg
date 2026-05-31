@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#EEF2FF"/>
+      <stop offset="1" stop-color="#E0E7FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <g transform="translate(140,70)">
+    <path d="M0 0 L20 0 L20 20 L40 20 L40 40 L20 40 Z" fill="#E63946"/>
+    <path d="M14 14 L34 14 L34 34 L14 34 Z" fill="#3B82F6"/>
+  </g>
+  <text x="160" y="145" fill="#6B7280" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="middle">Assignment</text>
+</svg>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F2A5C">
+  <title>My Assignments — Zoho Schools</title>
+  <meta name="description" content="A hub of every assignment / mini-site, auto-listed from the repo.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="page">
+    <header class="title-strip">
+      <img class="logo" src="assets/logo.svg" alt="" width="48" height="48">
+      <div class="titles">
+        <span class="eyebrow">Zoho Schools</span>
+        <span class="heading">My Assignments</span>
+      </div>
+    </header>
+    <div class="toolbar">
+      <label class="search">
+        <span class="visually-hidden" hidden>Search</span>
+        <input id="search" type="search" placeholder="Search assignments…" autocomplete="off">
+      </label>
+      <select id="filter" class="filter-select" aria-label="Filter by tag">
+        <option value="all">All tags</option>
+      </select>
+      <button id="view-toggle" class="view-toggle" type="button" aria-pressed="false" aria-label="Toggle view">
+        ⊞ ⊟
+      </button>
+    </div>
+
+    <section id="grid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

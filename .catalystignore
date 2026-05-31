@@ -1,0 +1,12 @@
+.git
+.github
+.gitignore
+.catalyst
+.catalystrc
+node_modules
+scripts
+README.md
+mockup-desktop.svg
+mockup-mobile.svg
+*.log
+.DS_Store
