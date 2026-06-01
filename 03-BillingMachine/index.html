@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kurinji Super Market — Billing Machine</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  background:#1a1c25;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:36px 20px 60px;
+  font-family:'Inter',sans-serif;
+}
+
+.page-hdr{text-align:center;margin-bottom:32px;}
+.page-hdr h1{font-size:1.5rem;font-weight:700;color:#e8eaf2;letter-spacing:-0.3px;}
+.page-hdr p{font-size:13px;color:#6b7089;margin-top:5px;}
+
+.phase-bar{
+  display:flex;gap:0;background:#12141c;border-radius:12px;
+  padding:4px;margin-bottom:28px;border:1px solid #2a2d3e;
+}
+.ph-step{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 18px;border-radius:9px;
+  font-size:12.5px;font-weight:600;color:#4a4f6a;
+  transition:all 0.25s;cursor:default;
+}
+.ph-step .ph-num{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  background:#2a2d3e;color:#4a4f6a;
+  transition:all 0.25s;
+}
+.ph-step.done{color:#5b8a6a;}
+.ph-step.done .ph-num{background:#1d4a32;color:#5be897;}
+.ph-step.active{color:#e8eaf2;}
+.ph-step.active .ph-num{background:#1a73e8;color:#fff;}
+.ph-arrow{color:#2a2d3e;font-size:12px;align-self:center;}
+
+.main{
+  display:flex;gap:32px;align-items:flex-start;
+  width:100%;max-width:960px;
+  flex-wrap:wrap;justify-content:center;
+}
+
+/* MACHINE */
+.machine{
+  width:300px;flex-shrink:0;
+  background:#22253a;
+  border-radius:22px;
+  border:2px solid #2e3150;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);
+  overflow:hidden;
+}
+.machine-top{
+  background:#191c2c;
+  padding:14px 16px 10px;
+  display:flex;align-items:center;gap:7px;
+  border-bottom:1px solid #2a2d3e;
+}
+.m-dot{width:9px;height:9px;border-radius:50%;}
+.m-brand{
+  margin-left:auto;font-size:10px;font-weight:700;
+  color:#3a3f5e;letter-spacing:1.5px;font-family:'Share Tech Mono',monospace;
+}
+
+/* RECEIPT WINDOW */
+.receipt-window{
+  background:#1e2030;
+  padding:10px 12px;
+  min-height:360px;
+  max-height:420px;
+  overflow-y:auto;
+}
+.receipt-window::-webkit-scrollbar{width:4px;}
+.receipt-window::-webkit-scrollbar-track{background:#1a1c2a;}
+.receipt-window::-webkit-scrollbar-thumb{background:#3a3f5e;border-radius:2px;}
+
+/* RECEIPT PAPER */
+.receipt-paper{
+  background:#fefdf5;
+  border-radius:3px;
+  padding:14px 13px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:11.5px;
+  color:#1a1a1a;
+  min-height:320px;
+  position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.receipt-paper::after{
+  content:'';
+  position:absolute;bottom:0;left:0;right:0;height:18px;
+  background:repeating-linear-gradient(90deg,#fefdf5 0px,#fefdf5 8px,#f0ede0 8px,#f0ede0 9px);
+}
+.r-center{text-align:center;}
+.r-bold{font-weight:700;font-size:12.5px;}
+.r-sm{font-size:10px;color:#555;}
+.r-dash{border:none;border-top:1px dashed #b0a870;margin:6px 0;}
+.r-solid{border:none;border-top:1.5px solid #888;margin:4px 0;}
+.r-row{display:flex;justify-content:space-between;font-size:11px;margin:2.5px 0;}
+.r-row.r-gst{color:#555;}
+.r-row.r-final{font-weight:700;font-size:13px;margin-top:4px;}
+.r-thank{text-align:center;font-size:10px;color:#666;margin-top:8px;line-height:1.6;}
+
+@keyframes printIn{
+  from{opacity:0;transform:translateY(-4px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.print-line{animation:printIn 0.18s ease-out forwards;}
+
+.paper-slot{height:8px;background:#12141c;margin:0;border-top:1px solid #2a2d3e;}
+
+/* KEYPAD AREA */
+.keypad-area{
+  padding:14px 14px 16px;
+  display:flex;flex-direction:column;gap:8px;
+}
+
+/* NUMPAD — mobile only */
+.numpad-grid{
+  display:none;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+}
+.kbtn{
+  background:#2a2d3e;border:1px solid #363a54;
+  border-radius:8px;padding:10px 0;
+  font-family:'Share Tech Mono',monospace;
+  font-size:16px;font-weight:600;color:#c0c4e0;
+  cursor:pointer;text-align:center;
+  transition:background 0.1s,transform 0.08s;
+  user-select:none;
+}
+.kbtn:active,.kbtn:hover{background:#363a54;transform:scale(0.96);}
+.kbtn.del{font-size:13px;color:#e07070;}
+
+/* m-display — mobile only */
+.m-display{
+  display:none;
+  background:#12141c;border:1px solid #2e3150;
+  border-radius:10px;padding:10px 12px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:18px;color:#00e87a;
+  text-align:right;letter-spacing:1px;
+  min-height:42px;
+}
+
+/* desktop number input — shown on desktop, hidden on mobile */
+.desktop-num{
+  display:block;
+  background:#12141c;border:1px solid #2e3150;
+  border-radius:10px;padding:10px 12px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:18px;color:#00e87a;
+  text-align:right;letter-spacing:1px;
+  width:100%;outline:none;
+  -moz-appearance:textfield;
+}
+.desktop-num::-webkit-outer-spin-button,
+.desktop-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.desktop-num:focus{border-color:#1a73e8;}
+.desktop-num::placeholder{color:#3a3f5e;font-size:14px;}
+
+/* Show numpad + m-display on mobile, hide desktop-num */
+@media(max-width:680px){
+  .numpad-grid{display:grid;}
+  .m-display{display:block;}
+  .desktop-num{display:none;}
+}
+
+.m-display-label{
+  font-size:10px;color:#3a3f5e;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:3px;
+}
+
+/* TEXT INPUT */
+.m-input{
+  background:#12141c;border:1px solid #2e3150;
+  border-radius:10px;padding:10px 12px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px;color:#e0e4ff;
+  width:100%;outline:none;
+  transition:border-color 0.2s;
+}
+.m-input:focus{border-color:#1a73e8;}
+.m-input::placeholder{color:#3a3f5e;}
+
+/* ACTION BUTTONS */
+.action-row{display:flex;gap:7px;margin-top:4px;}
+.act-btn{
+  flex:1;padding:11px 0;border:none;border-radius:10px;
+  font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;
+}
+.act-btn:active{transform:scale(0.97);}
+.btn-green{background:#1a5c34;color:#5be897;border:1px solid #2a7a4a;}
+.btn-green:hover{background:#1f6e3e;}
+.btn-blue{background:#1a3a6e;color:#70a8e8;border:1px solid #2a4a8a;}
+.btn-blue:hover{background:#1f4480;}
+.btn-gray{background:#2a2d3e;color:#8890b0;border:1px solid #363a54;}
+.btn-gray:hover{background:#363a54;}
+
+/* RIGHT PANEL */
+.right-panel{flex:1;min-width:280px;max-width:380px;}
+
+.panel-card{
+  background:#1e2133;border:1px solid #2a2d3e;
+  border-radius:16px;padding:22px;
+  margin-bottom:14px;
+}
+.panel-card h2{font-size:1.05rem;font-weight:700;color:#e0e4f2;margin-bottom:6px;}
+.panel-card p{font-size:13px;color:#6b7089;line-height:1.75;margin-bottom:10px;}
+.panel-card p:last-child{margin-bottom:0;}
+
+.step-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.chip{
+  font-size:11.5px;font-weight:500;padding:3px 10px;border-radius:20px;
+  border:1px solid #2e3150;color:#8890b0;background:#12141c;
+}
+
+.instruction-box{
+  background:#12141c;border:1px solid #1a73e8;
+  border-radius:12px;padding:14px 16px;
+  margin-bottom:14px;
+}
+.instr-phase{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1a73e8;margin-bottom:5px;}
+.instr-title{font-size:14px;font-weight:700;color:#e0e4f2;margin-bottom:4px;}
+.instr-desc{font-size:12.5px;color:#6b7089;line-height:1.7;}
+
+.item-list-preview{
+  background:#12141c;border:1px solid #2a2d3e;
+  border-radius:10px;padding:12px 14px;margin-top:10px;
+}
+.item-preview-title{
+  font-size:10px;font-weight:700;letter-spacing:1px;color:#3a3f5e;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.item-preview-row{
+  display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;color:#8890b0;padding:3px 0;
+  border-bottom:1px solid #1e2133;
+}
+.item-preview-row:last-child{border-bottom:none;}
+.item-preview-empty{font-size:12px;color:#2e3150;text-align:center;padding:8px 0;font-family:'Share Tech Mono',monospace;}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1a3a2a;border:1px solid #2a6a4a;
+  color:#5be897;font-size:13px;font-weight:600;
+  padding:10px 22px;border-radius:100px;
+  opacity:0;transition:opacity 0.25s;pointer-events:none;
+  font-family:'Inter',sans-serif;z-index:100;
+}
+.toast.show{opacity:1;}
+
+@media(max-width:680px){
+  .main{flex-direction:column;align-items:center;}
+  .right-panel{max-width:300px;width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="page-hdr">
+  <h1>🧾 Kurinji Super Market — Billing Machine</h1>
+  <p>Interactive Assignment · Phase 1 → 2 → 3 · Enter everything yourself</p>
+</div>
+
+<div class="phase-bar">
+  <div class="ph-step active" id="pstep1"><div class="ph-num">1</div> Header</div>
+  <div class="ph-arrow">›</div>
+  <div class="ph-step" id="pstep2"><div class="ph-num">2</div> Items</div>
+  <div class="ph-arrow">›</div>
+  <div class="ph-step" id="pstep3"><div class="ph-num">3</div> Bill</div>
+</div>
+
+<div class="main">
+
+  <!-- MACHINE -->
+  <div class="machine">
+    <div class="machine-top">
+      <div class="m-dot" style="background:#ff5f57"></div>
+      <div class="m-dot" style="background:#febc2e"></div>
+      <div class="m-dot" style="background:#28c840"></div>
+      <span class="m-brand">BILL-GEN</span>
+    </div>
+    <div class="receipt-window">
+      <div class="receipt-paper" id="receipt"></div>
+    </div>
+    <div class="paper-slot"></div>
+    <div class="keypad-area" id="keypad-area"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="instruction-box" id="instr-box">
+      <div class="instr-phase" id="instr-phase">Phase 1 — Header</div>
+      <div class="instr-title" id="instr-title">Enter the Bill Number</div>
+      <div class="instr-desc"  id="instr-desc">Type a bill number. In your program, this will be generated automatically using random numbers.</div>
+    </div>
+    <div class="panel-card">
+      <h2 id="learn-title">What you are doing in Phase 1</h2>
+      <div class="step-chips" id="learn-chips">
+        <span class="chip">Random Numbers</span>
+        <span class="chip">Date</span>
+        <span class="chip">Print &amp; Format</span>
+      </div>
+      <p id="learn-desc">In this phase you build the bill header — shop name, address, a random bill number, and today's date. Your program handles the number and date automatically.</p>
+    </div>
+    <div class="panel-card" id="items-panel" style="display:none;">
+      <h2>Items Added</h2>
+      <div class="item-list-preview">
+        <div class="item-preview-title">Dictionary — items{ }</div>
+        <div id="items-preview-list"><div class="item-preview-empty">No items yet</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const state={
+  phase:1, step:'billno',
+  billNo:'', billDate:'',
+  items:[], currentItemName:'', currentItemPrice:'',
+  gst:'', numBuf:''
+};
+
+const receipt=document.getElementById('receipt');
+let printQueue=[],printing=false;
+
+function addLine(html,delay){
+  printQueue.push({html,delay:delay||60});
+  if(!printing)processQueue();
+}
+function processQueue(){
+  if(!printQueue.length){printing=false;return;}
+  printing=true;
+  const{html,delay}=printQueue.shift();
+  setTimeout(()=>{
+    const div=document.createElement('div');
+    div.className='print-line';
+    div.innerHTML=html;
+    receipt.appendChild(div);
+    receipt.parentElement.scrollTop=receipt.parentElement.scrollHeight;
+    processQueue();
+  },delay);
+}
+
+function rCenter(t){return`<div class="r-center">${t}</div>`;}
+function rRow(l,r,cls=''){return`<div class="r-row ${cls}"><span>${l}</span><span>${r}</span></div>`;}
+function rDash(){return'<hr class="r-dash"/>';}
+function rSolid(){return'<hr class="r-solid"/>';}
+
+function updatePhaseBar(){
+  [1,2,3].forEach(n=>{
+    const el=document.getElementById('pstep'+n);
+    el.className='ph-step';
+    if(state.phase>n)el.classList.add('done');
+    if(state.phase===n)el.classList.add('active');
+  });
+}
+
+const INSTRS={
+  billno:  {ph:'Phase 1 — Header',title:'Enter the Bill Number',desc:'Type a bill number. In your program this will be auto-generated using random numbers.'},
+  billdate:{ph:'Phase 1 — Header',title:'Enter Today\'s Date',desc:'Type today\'s date (e.g. 01-06-2026). Your program will fetch this automatically using the date module.'},
+  itemname:{ph:'Phase 2 — Items',title:'Type the Item Name',desc:'Enter the name of the product — e.g. Rice, Sugar, Oil. Each name is a key in your dictionary.'},
+  itemprice:{ph:'Phase 2 — Items',title:'Enter the Item Price (₹)',desc:'Enter the price for this item. This value will be stored against the item name in your dictionary.'},
+  gst:     {ph:'Phase 3 — Bill',title:'Set GST Percentage (%)',desc:'Enter the GST rate to apply — e.g. 18. Your program uses this to calculate tax on the total amount.'},
+  done:    {ph:'All Phases Complete ✅',title:'Bill Printed!',desc:'You have completed all 3 phases. The receipt has been printed with header, items, and a full footer.'},
+};
+
+function setInstruction(key){
+  const i=INSTRS[key];
+  document.getElementById('instr-phase').textContent=i.ph;
+  document.getElementById('instr-title').textContent=i.title;
+  document.getElementById('instr-desc').textContent=i.desc;
+}
+
+const LEARN={
+  1:{title:'What you are doing in Phase 1',chips:['Random Numbers','Date','Print &amp; Format'],desc:'Build the bill header — shop name, address, a random bill number, and today\'s date. Your program handles the number and date automatically.'},
+  2:{title:'What you are doing in Phase 2',chips:['Dictionaries','Input Loop','Key-Value Pairs'],desc:'Each item you add goes into a dictionary — the name is the key and the price is the value. You keep adding items until you tap Done.'},
+  3:{title:'What you are doing in Phase 3',chips:['sum() of values','GST calculation','Final Amount'],desc:'Your program sums all dictionary values to get the subtotal, applies your GST rate to calculate tax, then shows the final payable amount.'},
+};
+
+function setLearnPanel(n){
+  const l=LEARN[n];
+  document.getElementById('learn-title').textContent=l.title;
+  document.getElementById('learn-chips').innerHTML=l.chips.map(c=>`<span class="chip">${c}</span>`).join('');
+  document.getElementById('learn-desc').textContent=l.desc;
+}
+
+function updateItemsPreview(){
+  const list=document.getElementById('items-preview-list');
+  if(!state.items.length){list.innerHTML='<div class="item-preview-empty">No items yet</div>';return;}
+  list.innerHTML=state.items.map(it=>`<div class="item-preview-row"><span>${it.name}</span><span>₹${parseFloat(it.price).toFixed(2)}</span></div>`).join('');
+}
+
+function todayStr(){
+  const d=new Date();
+  return d.getDate().toString().padStart(2,'0')+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getFullYear();
+}
+
+function padRight(s,len){return s.length>=len?s.slice(0,len):s+' '.repeat(len-s.length);}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ── NUMPAD (mobile) ── */
+function numPress(v){
+  if(v==='.'&&state.numBuf.includes('.'))return;
+  if(state.numBuf==='0'&&v!=='.')state.numBuf=v;
+  else state.numBuf+=v;
+  if(state.numBuf.length>10)state.numBuf=state.numBuf.slice(0,10);
+  syncDisplay();
+}
+function numDel(){state.numBuf=state.numBuf.slice(0,-1);syncDisplay();}
+function syncDisplay(){
+  const d=document.getElementById('num-display');
+  if(d)d.textContent=state.numBuf||'0';
+}
+
+/* ── RENDER KEYPAD ── */
+function numBlock(desktopId,label){
+  return `
+    <div class="m-display-label">${label}</div>
+    <input class="desktop-num" id="${desktopId}" type="number" placeholder="Type here..." min="0" step="any"
+      oninput="state.numBuf=this.value"/>
+    <div class="m-display" id="num-display">0</div>
+    <div class="numpad-grid" style="margin:8px 0;">
+      <button class="kbtn" onclick="numPress('1')">1</button>
+      <button class="kbtn" onclick="numPress('2')">2</button>
+      <button class="kbtn" onclick="numPress('3')">3</button>
+      <button class="kbtn" onclick="numPress('4')">4</button>
+      <button class="kbtn" onclick="numPress('5')">5</button>
+      <button class="kbtn" onclick="numPress('6')">6</button>
+      <button class="kbtn" onclick="numPress('7')">7</button>
+      <button class="kbtn" onclick="numPress('8')">8</button>
+      <button class="kbtn" onclick="numPress('9')">9</button>
+      <button class="kbtn" onclick="numPress('.')">.</button>
+      <button class="kbtn" onclick="numPress('0')">0</button>
+      <button class="kbtn del" onclick="numDel()">⌫</button>
+    </div>`;
+}
+
+function renderKeypad(){
+  const area=document.getElementById('keypad-area');
+  const s=state.step;
+  state.numBuf='';
+
+  if(s==='billno'){
+    area.innerHTML=`
+      ${numBlock('billno-inp','Bill Number')}
+      <div class="action-row">
+        <button class="act-btn btn-green" onclick="confirmBillNo()">CONFIRM ✓</button>
+      </div>`;
+
+  }else if(s==='billdate'){
+    area.innerHTML=`
+      <div class="m-display-label">Date (DD-MM-YYYY)</div>
+      <input class="m-input" id="date-inp" placeholder="${todayStr()}" maxlength="10"/>
+      <div class="action-row" style="margin-top:8px;">
+        <button class="act-btn btn-gray" onclick="useToday()">USE TODAY</button>
+        <button class="act-btn btn-green" onclick="confirmDate()">CONFIRM ✓</button>
+      </div>`;
+
+  }else if(s==='itemname'){
+    area.innerHTML=`
+      <div class="m-display-label">Item Name</div>
+      <input class="m-input" id="item-name-inp" placeholder="e.g. Rice, Sugar, Oil" maxlength="20"/>
+      <div class="action-row" style="margin-top:8px;">
+        <button class="act-btn btn-green" onclick="confirmItemName()">NEXT →</button>
+        ${state.items.length>0?'<button class="act-btn btn-blue" onclick="goToGST()">DONE ADDING</button>':''}
+      </div>`;
+
+  }else if(s==='itemprice'){
+    area.innerHTML=`
+      ${numBlock('price-inp','Price for "'+state.currentItemName+'" (₹)')}
+      <div class="action-row">
+        <button class="act-btn btn-green" onclick="confirmItemPrice()">ADD ITEM ✓</button>
+      </div>`;
+
+  }else if(s==='gst'){
+    area.innerHTML=`
+      ${numBlock('gst-inp','GST Rate (%)')}
+      <div class="action-row">
+        <button class="act-btn btn-green" onclick="confirmGST()">PRINT BILL →</button>
+      </div>`;
+
+  }else if(s==='done'){
+    area.innerHTML=`
+      <div style="text-align:center;padding:10px 0 4px;">
+        <div style="color:#5be897;font-size:22px;margin-bottom:6px;">✓</div>
+        <div style="color:#5be897;font-size:13px;font-weight:700;margin-bottom:10px;font-family:'Share Tech Mono',monospace;">BILL PRINTED</div>
+      </div>
+      <div class="action-row">
+        <button class="act-btn btn-gray" onclick="resetAll()">NEW BILL</button>
+      </div>`;
+  }
+}
+
+/* ── ACTIONS ── */
+function getNumVal(){
+  const desktopIds=['billno-inp','price-inp','gst-inp'];
+  for(const id of desktopIds){
+    const el=document.getElementById(id);
+    if(el&&el.value.trim()!=='')return el.value.trim();
+  }
+  return state.numBuf;
+}
+
+function confirmBillNo(){
+  const v=getNumVal();
+  if(!v||v==='0'){toast('Enter a bill number first!');return;}
+  state.billNo=v;
+  addLine(rCenter('<span class="r-bold">KURINJI SUPER MARKET</span>'),120);
+  addLine(rCenter('<span class="r-sm">Kovil Street, Tenkasi</span>'),100);
+  addLine(rCenter('<span class="r-sm">Ph: 04627-220100</span>'),100);
+  addLine(rDash(),80);
+  addLine(rRow('Bill No','#'+state.billNo),100);
+  state.step='billdate';
+  setInstruction('billdate');
+  setTimeout(renderKeypad,600);
+}
+
+function useToday(){
+  const el=document.getElementById('date-inp');
+  if(el)el.value=todayStr();
+}
+
+function confirmDate(){
+  const el=document.getElementById('date-inp');
+  const v=el?el.value.trim():'';
+  if(!v){toast('Enter a date!');return;}
+  state.billDate=v;
+  addLine(rRow('Date',state.billDate),100);
+  addLine(rDash(),80);
+  state.phase=2;state.step='itemname';
+  updatePhaseBar();setInstruction('itemname');setLearnPanel(2);
+  document.getElementById('items-panel').style.display='block';
+  setTimeout(renderKeypad,600);
+}
+
+function confirmItemName(){
+  const el=document.getElementById('item-name-inp');
+  const v=el?el.value.trim():'';
+  if(!v){toast('Enter an item name!');return;}
+  state.currentItemName=v;
+  state.numBuf='';
+  state.step='itemprice';
+  setInstruction('itemprice');
+  renderKeypad();
+}
+
+function confirmItemPrice(){
+  const v=getNumVal();
+  if(!v||v==='0'){toast('Enter a price!');return;}
+  state.currentItemPrice=v;
+  state.items.push({name:state.currentItemName,price:state.currentItemPrice});
+  const n=padRight(state.currentItemName,14);
+  addLine(`<div class="r-row"><span>${n}</span><span>&#8377;${parseFloat(state.currentItemPrice).toFixed(2)}</span></div>`,100);
+  updateItemsPreview();
+  toast('"'+state.currentItemName+'" added!');
+  state.currentItemName='';state.currentItemPrice='';state.numBuf='';
+  state.step='itemname';setInstruction('itemname');
+  renderKeypad();
+}
+
+function goToGST(){
+  if(!state.items.length){toast('Add at least one item!');return;}
+  state.phase=3;state.step='gst';
+  updatePhaseBar();setInstruction('gst');setLearnPanel(3);
+  addLine(rDash(),80);
+  setTimeout(renderKeypad,300);
+}
+
+function confirmGST(){
+  const v=getNumVal();
+  if(!v||v==='0'){toast('Enter GST rate!');return;}
+  const gstPct=parseFloat(v);
+  if(isNaN(gstPct)||gstPct<0||gstPct>100){toast('Enter a valid GST %');return;}
+  state.gst=gstPct;
+  const subtotal=state.items.reduce((s,it)=>s+parseFloat(it.price),0);
+  const gstAmt=parseFloat((subtotal*gstPct/100).toFixed(2));
+  const final=parseFloat((subtotal+gstAmt).toFixed(2));
+  addLine(rSolid(),80);
+  addLine(rRow('Subtotal','&#8377;'+subtotal.toFixed(2)),120);
+  addLine(rRow('GST ('+gstPct+'%)','&#8377;'+gstAmt.toFixed(2),'r-gst'),130);
+  addLine(rSolid(),100);
+  addLine(rRow('TOTAL AMOUNT','&#8377;'+final.toFixed(2),'r-final'),140);
+  addLine(rDash(),100);
+  addLine(rCenter('<span class="r-thank">&#9733; Thank you for shopping! &#9733;<br/>Visit us again at Kovil Street</span>'),160);
+  addLine('<div style="height:20px;"></div>',60);
+  state.step='done';
+  setInstruction('done');
+  updatePhaseBar();
+  document.getElementById('learn-title').textContent='All Phases Complete ✅';
+  document.getElementById('learn-chips').innerHTML='<span class="chip">Phase 1 ✓</span><span class="chip">Phase 2 ✓</span><span class="chip">Phase 3 ✓</span>';
+  document.getElementById('learn-desc').textContent='You have completed all 3 phases — header with bill number and date, items dictionary, and the footer with GST and final amount.';
+  setTimeout(renderKeypad,400);
+}
+
+function resetAll(){
+  state.phase=1;state.step='billno';
+  state.billNo='';state.billDate='';
+  state.items=[];state.currentItemName='';state.currentItemPrice='';
+  state.gst='';state.numBuf='';
+  receipt.innerHTML='';
+  printQueue=[];printing=false;
+  updatePhaseBar();setInstruction('billno');setLearnPanel(1);
+  document.getElementById('items-panel').style.display='none';
+  updateItemsPreview();
+  renderKeypad();
+}
+
+/* INIT */
+updatePhaseBar();
+setInstruction('billno');
+setLearnPanel(1);
+renderKeypad();
+</script>
+</body>
+</html>
