@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TN Bus Ticket Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#1a1410;
+  --ink2:#4a3f35;
+  --ink3:#8a7a6a;
+  --paper:#faf6ef;
+  --paper2:#f2ede3;
+  --paper3:#e8e0d0;
+  --rust:#c4441c;
+  --rust2:#e85a28;
+  --green:#1a6b3a;
+  --green2:#2a8c50;
+  --amber:#c47a1c;
+  --blue:#1a4a8a;
+  --blue2:#2a6aaa;
+  --border:#d4c8b4;
+  --border2:#bfb09a;
+  --font-head:'Sora',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-serif:'DM Serif Display',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:15px;}
+body{
+  background:var(--paper2);
+  color:var(--ink);
+  font-family:var(--font-head);
+  min-height:100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--blue);
+  padding:0 32px;
+  display:flex;align-items:center;gap:0;
+  height:58px;
+  box-shadow:0 2px 0 var(--blue2), 0 4px 16px rgba(0,0,0,0.2);
+  position:sticky;top:0;z-index:100;
+}
+.tb-logo{
+  font-family:var(--font-serif);
+  font-size:1.25rem;
+  color:#fff;
+  letter-spacing:0.2px;
+  margin-right:auto;
+  display:flex;align-items:center;gap:10px;
+}
+.tb-logo .flag{
+  width:28px;height:20px;border-radius:2px;
+  background:linear-gradient(180deg,#ff9933 33%,#fff 33%,#fff 66%,#138808 66%);
+  flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+.tb-tab{
+  padding:0 22px;height:58px;
+  display:flex;align-items:center;gap:9px;
+  color:rgba(255,255,255,0.55);
+  font-family:var(--font-head);font-size:13px;font-weight:500;
+  cursor:pointer;border-bottom:3px solid transparent;
+  transition:all 0.18s;
+}
+.tb-tab:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.07);}
+.tb-tab.active{color:#fff;border-bottom-color:#fff;}
+.tb-tab.done{color:rgba(255,255,255,0.75);}
+.tb-num{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;transition:all 0.18s;
+}
+.tb-tab.active .tb-num{background:#fff;color:var(--blue);}
+.tb-tab.done .tb-num{background:rgba(255,255,255,0.9);color:var(--green);}
+
+/* ── PAGES ── */
+.page{display:none;max-width:1060px;margin:0 auto;padding:32px 28px 72px;}
+.page.active{display:block;}
+
+/* ── PAGE HEADER ── */
+.pg-hdr{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.pg-hdr h1{
+  font-family:var(--font-serif);font-size:1.9rem;
+  color:var(--ink);margin-bottom:5px;letter-spacing:-0.3px;
+}
+.pg-hdr p{font-size:13.5px;color:var(--ink3);}
+
+/* ── CARD ── */
+.card{
+  background:var(--paper);
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-bottom:20px;
+  overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+.card-hdr{
+  padding:14px 22px;
+  border-bottom:1px solid var(--border);
+  background:var(--paper2);
+  display:flex;align-items:center;gap:10px;
+}
+.card-hdr .ch-ico{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--paper3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.card-hdr .ch-title{
+  font-family:var(--font-head);font-size:13px;font-weight:600;
+  color:var(--ink);letter-spacing:0.1px;
+}
+.card-hdr .ch-right{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--ink3);}
+.card-body{padding:22px;}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{
+  font-size:11px;font-weight:600;
+  color:var(--ink3);letter-spacing:0.8px;text-transform:uppercase;
+  display:flex;align-items:center;gap:5px;
+}
+.fg label .req{color:var(--rust);}
+.fi{
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:8px;padding:10px 13px;
+  font-family:var(--font-mono);font-size:13px;
+  color:var(--ink);outline:none;
+  transition:border-color 0.18s,box-shadow 0.18s;
+  width:100%;
+}
+.fi:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(26,74,138,0.08);}
+.fi::placeholder{color:var(--border2);}
+.fi.ok{border-color:var(--green2);}
+.fi.err{border-color:var(--rust);}
+.fhint{font-size:11px;color:var(--ink3);font-family:var(--font-mono);}
+.ferr{font-size:11px;color:var(--rust);font-family:var(--font-mono);display:none;}
+.fok{font-size:11px;color:var(--green2);font-family:var(--font-mono);display:none;}
+.fi.err~.ferr{display:block;}
+
+/* ── BUTTONS ── */
+.btn{
+  padding:10px 20px;border:none;border-radius:8px;
+  font-family:var(--font-head);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.14s;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.btn:active{transform:scale(0.97);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue2);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:var(--green2);}
+.btn-rust{background:var(--rust);color:#fff;}
+.btn-rust:hover{background:var(--rust2);}
+.btn-outline{background:#fff;color:var(--ink);border:1.5px solid var(--border);}
+.btn-outline:hover{background:var(--paper2);}
+.btn-sm{padding:7px 14px;font-size:12px;}
+
+/* ── STATION TABLE ── */
+.st-table{width:100%;border-collapse:collapse;font-size:13px;}
+.st-table th{
+  text-align:left;padding:9px 12px;font-size:11px;font-weight:600;
+  color:var(--ink3);letter-spacing:0.5px;text-transform:uppercase;
+  border-bottom:1.5px solid var(--border);
+}
+.st-table td{padding:9px 12px;border-bottom:1px solid var(--paper3);color:var(--ink);}
+.st-table tr:last-child td{border-bottom:none;}
+.st-table tr:hover td{background:var(--paper2);}
+.km-badge{
+  background:var(--paper3);color:var(--blue);
+  font-family:var(--font-mono);font-size:11.5px;font-weight:600;
+  padding:2px 10px;border-radius:20px;border:1px solid var(--border);
+}
+.del-btn{
+  background:none;border:none;color:var(--rust);
+  font-size:15px;cursor:pointer;padding:3px 7px;
+  border-radius:6px;opacity:0.5;transition:opacity 0.15s;
+}
+.del-btn:hover{opacity:1;background:rgba(196,68,28,0.08);}
+
+/* ── BUS CARDS ── */
+.bus-grid{display:flex;flex-direction:column;gap:10px;}
+.bus-card{
+  background:#fff;border:1.5px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+  display:flex;align-items:center;gap:14px;
+  transition:all 0.16s;
+}
+.bus-card:hover{border-color:var(--blue2);box-shadow:0 2px 12px rgba(26,74,138,0.1);}
+.bus-icon{
+  width:42px;height:42px;border-radius:10px;
+  background:var(--paper2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.bus-number{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--blue);}
+.bus-route{font-size:12.5px;color:var(--ink2);margin-top:3px;}
+.bus-meta{font-size:11.5px;color:var(--ink3);margin-top:2px;font-family:var(--font-mono);}
+
+/* ══════════════════════════════
+   MACHINE SECTION
+══════════════════════════════ */
+.machine-layout{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;}
+
+/* THE PHYSICAL MACHINE */
+.machine-outer{
+  width:310px;flex-shrink:0;
+  /* wooden/olive casing */
+  background:linear-gradient(160deg,#6b5e4a 0%,#574c3a 60%,#4a4030 100%);
+  border-radius:20px;
+  padding:3px;
+  box-shadow:
+    0 0 0 1px #3a3028,
+    0 24px 56px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.machine-inner{
+  background:linear-gradient(160deg,#3d3626 0%,#2e2a1e 100%);
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid #4a4030;
+}
+.machine-top-bar{
+  background:linear-gradient(180deg,#2a2418 0%,#1e1a10 100%);
+  padding:14px 18px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #3a3020;
+}
+.mtb-brand{
+  font-family:var(--font-mono);font-size:9px;font-weight:600;
+  color:#6b5a3a;letter-spacing:3px;text-transform:uppercase;
+}
+.mtb-dots{display:flex;gap:6px;}
+.mtb-dot{width:9px;height:9px;border-radius:50%;}
+
+/* LED DISPLAY */
+.led-display{
+  background:#0a0e06;
+  margin:0 14px 0;
+  border-radius:6px;
+  padding:10px 14px;
+  border:2px solid #1a1a0e;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.8);
+  font-family:var(--font-mono);font-size:11px;
+  color:#7aff4a;letter-spacing:0.5px;
+  min-height:32px;
+  line-height:1.4;
+  margin-top:10px;
+}
+
+/* PAPER SLOT */
+.paper-slot-top{
+  height:8px;background:#0e0c08;
+  margin:8px 14px 0;border-radius:3px;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.9);
+}
+/* RECEIPT AREA */
+.receipt-area{
+  background:#1a1610;
+  padding:10px 12px;
+  min-height:300px;max-height:380px;
+  overflow-y:auto;
+  margin:4px 14px;border-radius:4px;
+}
+.receipt-area::-webkit-scrollbar{width:3px;}
+.receipt-area::-webkit-scrollbar-thumb{background:#3a3020;}
+
+/* THERMAL PAPER */
+.receipt-paper{
+  background:#fdfcf5;
+  border-radius:2px;
+  padding:14px 12px 26px;
+  font-family:var(--font-mono);
+  font-size:11px;color:#1a1410;
+  min-height:280px;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+.receipt-paper::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:22px;
+  background:repeating-linear-gradient(90deg,#fdfcf5 0,#fdfcf5 8px,#ede8d8 8px,#ede8d8 9px);
+}
+.r-center{text-align:center;}
+.r-bold{font-weight:600;font-size:12px;}
+.r-sm{font-size:10px;color:#555;}
+.r-dash{border:none;border-top:1px dashed #b0a060;margin:5px 0;}
+.r-solid{border:none;border-top:2px solid #444;margin:4px 0;}
+.r-row{display:flex;justify-content:space-between;font-size:10.5px;margin:2px 0;}
+.r-row.r-final{font-weight:700;font-size:12.5px;margin-top:4px;}
+.r-thank{text-align:center;font-size:10px;color:#666;margin-top:8px;line-height:1.7;}
+@keyframes printIn{from{opacity:0;max-height:0;}to{opacity:1;max-height:80px;}}
+.print-line{animation:printIn 0.1s ease-out forwards;}
+
+/* BOTTOM PAPER SLOT */
+.paper-slot-bot{
+  height:8px;background:#0e0c08;
+  margin:4px 14px 10px;border-radius:3px;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.9);
+}
+
+/* MACHINE CONTROLS */
+.machine-controls{
+  background:linear-gradient(180deg,#2a2418 0%,#1e1a10 100%);
+  padding:16px 16px 18px;
+  border-top:1px solid #3a3020;
+}
+.mc-label{
+  font-family:var(--font-mono);font-size:9px;font-weight:600;
+  color:#6b5a3a;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:5px;margin-top:12px;
+}
+.mc-label:first-child{margin-top:0;}
+.mc-select{
+  width:100%;
+  background:#120f08;border:1px solid #3a3020;
+  border-radius:7px;padding:10px 12px;
+  font-family:var(--font-mono);font-size:12.5px;color:#e8d8b8;
+  outline:none;cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b5a3a'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  transition:border-color 0.15s;
+}
+.mc-select:focus{border-color:#8a7040;}
+.mc-select option{background:#1e1a10;}
+
+/* active bus strip */
+.active-bus-strip{
+  background:#120f08;border:1px solid #3a3020;
+  border-left:3px solid var(--amber);
+  border-radius:7px;padding:10px 13px;
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.abs-num{font-family:var(--font-mono);font-size:13px;font-weight:600;color:#e8c870;letter-spacing:1px;}
+.abs-route{font-size:11px;color:#8a7a5a;margin-top:2px;}
+
+/* COUNT ROW */
+.count-row{display:flex;align-items:center;gap:8px;}
+.cnt-btn{
+  width:36px;height:36px;border-radius:7px;
+  background:#120f08;border:1px solid #3a3020;
+  color:#e8d8b8;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.12s;flex-shrink:0;font-family:var(--font-mono);
+}
+.cnt-btn:hover{border-color:#8a7040;color:#e8c870;}
+.cnt-display{
+  flex:1;background:#0a0e06;border:1px solid #1a1a0e;
+  border-radius:7px;padding:8px 0;
+  font-family:var(--font-mono);font-size:22px;font-weight:600;
+  color:#7aff4a;text-align:center;letter-spacing:2px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);
+}
+
+/* PRINT BTN */
+.print-btn{
+  width:100%;margin-top:13px;padding:13px 0;
+  border:none;border-radius:9px;
+  font-family:var(--font-head);font-size:13px;font-weight:700;
+  letter-spacing:0.5px;cursor:pointer;
+  background:var(--rust);color:#fff;
+  transition:all 0.16s;
+  box-shadow:0 3px 0 #8a2a0e,0 4px 12px rgba(196,68,28,0.35);
+}
+.print-btn:hover{background:var(--rust2);box-shadow:0 3px 0 #9a3010,0 6px 16px rgba(232,90,40,0.4);}
+.print-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #8a2a0e;}
+
+/* ── TICKET LOG ── */
+.ticket-log{flex:1;min-width:260px;}
+.log-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.log-hdr h2{font-family:var(--font-serif);font-size:1.25rem;color:var(--ink);}
+.log-count-pill{
+  background:var(--paper3);color:var(--ink2);
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  padding:3px 11px;border-radius:20px;border:1px solid var(--border);
+}
+.end-btn{
+  padding:9px 18px;border-radius:7px;
+  background:#fff;border:1.5px solid var(--rust);
+  color:var(--rust);font-family:var(--font-head);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.14s;
+}
+.end-btn:hover{background:var(--rust);color:#fff;}
+.log-empty{
+  border:1.5px dashed var(--border);border-radius:10px;
+  text-align:center;padding:36px 20px;
+  font-size:13px;color:var(--ink3);font-family:var(--font-mono);
+}
+.log-list{display:flex;flex-direction:column;gap:8px;max-height:460px;overflow-y:auto;}
+.log-item{
+  background:#fff;border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  transition:border-color 0.14s;
+}
+.log-item:hover{border-color:var(--blue2);}
+.log-item.fresh{animation:itemIn 0.3s ease-out;}
+@keyframes itemIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.li-route{font-family:var(--font-head);font-size:13px;font-weight:600;color:var(--blue);}
+.li-meta{font-size:11.5px;color:var(--ink3);margin-top:3px;font-family:var(--font-mono);}
+.li-fare{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--green);text-align:right;}
+.li-no{font-family:var(--font-mono);font-size:10px;color:var(--ink3);margin-top:2px;text-align:right;}
+
+/* ── PHASE 3 ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;}
+.stat-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 16px;border-top:3px solid var(--border);}
+.stat-box.sb-blue{border-top-color:var(--blue);}
+.stat-box.sb-green{border-top-color:var(--green);}
+.stat-box.sb-rust{border-top-color:var(--rust);}
+.stat-box.sb-amber{border-top-color:var(--amber);}
+.stat-val{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.stat-lbl{font-size:11.5px;color:var(--ink3);}
+
+.r3-table{width:100%;border-collapse:collapse;font-size:13px;}
+.r3-table th{padding:10px 14px;font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:0.5px;text-transform:uppercase;border-bottom:1.5px solid var(--border);text-align:left;}
+.r3-table td{padding:10px 14px;border-bottom:1px solid var(--paper3);color:var(--ink);}
+.r3-table tr:last-child td{border-bottom:none;}
+.r3-table tr:hover td{background:var(--paper2);}
+.bar-wrap{background:var(--paper3);border-radius:100px;height:7px;overflow:hidden;flex:1;}
+.bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--blue2));transition:width 0.8s ease;}
+
+/* ── OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(26,20,16,0.65);display:none;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(3px);}
+.overlay.show{display:flex;}
+.ov-card{
+  background:var(--paper);border:1px solid var(--border);
+  border-radius:16px;padding:28px;width:430px;max-width:93vw;max-height:80vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.ov-title{font-family:var(--font-serif);font-size:1.4rem;color:var(--ink);margin-bottom:5px;}
+.ov-sub{font-size:13px;color:var(--ink3);margin-bottom:20px;}
+.ov-bus-card{
+  background:#fff;border:1.5px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:all 0.16s;margin-bottom:10px;
+}
+.ov-bus-card:hover{border-color:var(--blue2);box-shadow:0 2px 10px rgba(26,74,138,0.12);}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);
+  font-family:var(--font-head);font-size:13px;font-weight:500;
+  padding:11px 24px;border-radius:100px;
+  opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:999;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);
+}
+.toast.show{opacity:1;}
+.toast.t-ok{background:var(--green);}
+.toast.t-err{background:var(--rust);}
+
+.empty-state{text-align:center;padding:52px 20px;color:var(--ink3);}
+.empty-state .es-i{font-size:36px;margin-bottom:12px;opacity:0.4;}
+.empty-state p{font-size:13.5px;font-family:var(--font-mono);}
+
+/* validation hint */
+.vhint{font-size:11px;color:var(--ink3);font-family:var(--font-mono);}
+.verr{font-size:11px;color:var(--rust);font-family:var(--font-mono);display:none;}
+.vok{font-size:11px;color:var(--green2);font-family:var(--font-mono);display:none;}
+
+@media(max-width:680px){
+  .machine-layout{flex-direction:column;align-items:center;}
+  .machine-outer{width:100%;max-width:310px;}
+  .topbar{padding:0 14px;}
+  .page{padding:20px 14px 60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">
+    <div class="flag"></div>
+    Tamil Nadu Bus Ticket
+  </div>
+  <div class="tb-tab active" id="tab1" onclick="goPage(1)">
+    <div class="tb-num">1</div> Setup
+  </div>
+  <div class="tb-tab" id="tab2" onclick="goPage(2)">
+    <div class="tb-num">2</div> Ticketing
+  </div>
+  <div class="tb-tab" id="tab3" onclick="goPage(3)">
+    <div class="tb-num">3</div> Report
+  </div>
+</div>
+
+<!-- ══════════════ PAGE 1 ══════════════ -->
+<div class="page active" id="page1">
+  <div class="pg-hdr">
+    <h1>Bus Setup</h1>
+    <p>Register buses, configure routes, fares and stations before starting the journey.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="ch-ico">🚌</div>
+      <div class="ch-title">Add New Bus</div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+
+        <div class="fg">
+          <label>Bus Number <span class="req">*</span></label>
+          <input class="fi" id="inp-busno" placeholder="e.g. TN 39 N 1204" oninput="vBusNo(this)" maxlength="16"/>
+          <span class="vhint">Format: TN 39 N 1204 (state · district · letter · number)</span>
+          <span class="verr" id="err-busno">Must match format: TN 39 N 1204</span>
+          <span class="vok"  id="ok-busno">✓ Valid bus number</span>
+        </div>
+
+        <div class="fg">
+          <label>Route Name <span class="req">*</span></label>
+          <input class="fi" id="inp-route" placeholder="e.g. Kumbakonam - Thanjavur" oninput="vRoute(this)" maxlength="60"/>
+          <span class="vhint">Letters, numbers, spaces and - allowed</span>
+          <span class="verr" id="err-route">Only letters, numbers, spaces and hyphens</span>
+          <span class="vok"  id="ok-route">✓ Valid route</span>
+        </div>
+
+        <div class="fg">
+          <label>Base Fare ₹ <span class="req">*</span></label>
+          <input class="fi" id="inp-fare" type="number" min="1" step="0.5" placeholder="e.g. 10" oninput="vPosNum(this,'err-fare','ok-fare')"/>
+          <span class="verr" id="err-fare">Enter a valid positive amount</span>
+          <span class="vok"  id="ok-fare">✓</span>
+        </div>
+
+        <div class="fg">
+          <label>Fare per KM ₹ <span class="req">*</span></label>
+          <input class="fi" id="inp-kmfare" type="number" min="0.1" step="0.1" placeholder="e.g. 1.20" oninput="vPosNum(this,'err-kmfare','ok-kmfare')"/>
+          <span class="verr" id="err-kmfare">Enter a valid positive amount</span>
+          <span class="vok"  id="ok-kmfare">✓</span>
+        </div>
+
+      </div>
+
+      <!-- STATIONS -->
+      <div style="margin-top:24px;border-top:1px solid var(--paper3);padding-top:20px;">
+        <div style="font-family:var(--font-head);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+          <span>📍</span> Add Stations
+          <span style="font-size:11.5px;color:var(--ink3);font-weight:400;">(first station = 0 km)</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+          <div class="fg" style="flex:2;min-width:140px;">
+            <label>Station Name <span class="req">*</span></label>
+            <input class="fi" id="inp-sname" placeholder="e.g. Papanasam" oninput="vStation(this)" maxlength="30"/>
+            <span class="vhint">Letters and spaces only</span>
+            <span class="verr" id="err-sname">Only letters and spaces allowed</span>
+            <span class="vok"  id="ok-sname">✓</span>
+          </div>
+          <div class="fg" style="flex:1;min-width:120px;">
+            <label>Distance (km) <span class="req">*</span></label>
+            <input class="fi" id="inp-sdist" type="number" min="0" step="1" placeholder="km from start" oninput="vPosNum(this,'err-sdist','ok-sdist',true)"/>
+            <span class="verr" id="err-sdist">Enter a valid distance</span>
+            <span class="vok"  id="ok-sdist">✓</span>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="addStation()" style="margin-bottom:18px;">+ Add Station</button>
+        </div>
+        <div id="st-empty" style="font-size:12.5px;color:var(--ink3);padding:6px 0;font-family:var(--font-mono);">No stations added yet.</div>
+        <table class="st-table" id="st-table" style="display:none;">
+          <thead><tr><th>#</th><th>Station</th><th>Distance</th><th></th></tr></thead>
+          <tbody id="st-tbody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-blue" onclick="saveBus()">Save Bus</button>
+        <button class="btn btn-outline" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTERED BUSES -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="ch-ico">🗂️</div>
+      <div class="ch-title">Registered Buses</div>
+      <div class="ch-right" id="bus-count"></div>
+    </div>
+    <div class="card-body">
+      <div id="bus-list-wrap">
+        <div class="empty-state"><div class="es-i">🚌</div><p>No buses registered yet.</p></div>
+      </div>
+      <div style="margin-top:18px;text-align:right;">
+        <button class="btn btn-green" onclick="goPage(2)">Start Ticketing →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE 2 ══════════════ -->
+<div class="page" id="page2">
+  <div class="pg-hdr">
+    <h1>Ticketing</h1>
+    <p>Select boarding &amp; departing stations, set passenger count, and print the ticket.</p>
+  </div>
+
+  <div class="machine-layout">
+
+    <!-- MACHINE -->
+    <div class="machine-outer">
+      <div class="machine-inner">
+        <div class="machine-top-bar">
+          <div class="mtb-brand">TNSTC · TICKET PRINTER</div>
+          <div class="mtb-dots">
+            <div class="mtb-dot" style="background:#ff5f57;box-shadow:0 0 5px #ff5f57aa;"></div>
+            <div class="mtb-dot" style="background:#febc2e;box-shadow:0 0 5px #febc2eaa;"></div>
+            <div class="mtb-dot" style="background:#28c840;box-shadow:0 0 5px #28c840aa;"></div>
+          </div>
+        </div>
+        <div class="led-display" id="led-display">READY&nbsp;·&nbsp;SELECT BUS TO BEGIN</div>
+        <div class="paper-slot-top"></div>
+        <div class="receipt-area">
+          <div class="receipt-paper" id="receipt-paper">
+            <div style="text-align:center;color:#aaa;font-size:10px;padding:50px 0 0;">— ready to print —</div>
+          </div>
+        </div>
+        <div class="paper-slot-bot"></div>
+        <div class="machine-controls" id="machine-controls"></div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="ticket-log">
+      <div class="log-hdr">
+        <h2>Tickets Issued <span class="log-count-pill" id="log-count">0</span></h2>
+        <button class="end-btn" onclick="endJourney()">End Journey → Report</button>
+      </div>
+      <div id="ticket-log-list">
+        <div class="log-empty">No tickets issued yet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE 3 ══════════════ -->
+<div class="page" id="page3">
+  <div class="pg-hdr">
+    <h1>Journey Report</h1>
+    <p>Passenger counts per station and total revenue summary.</p>
+  </div>
+  <div id="report-wrap">
+    <div class="empty-state"><div class="es-i">📊</div><p>Complete a journey to view the report.</p></div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="ov-card">
+    <div class="ov-title">Choose Your Bus</div>
+    <div class="ov-sub">Select the bus you are conducting. You won't be asked again until the journey ends.</div>
+    <div id="ov-list"></div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-outline btn-sm" onclick="goPage(1)">← Add a bus first</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+
+<script>
+/* ═══ STATE ═══ */
+const db={buses:[],activeBusId:null,tickets:[],tc:1,tmpSt:[]};
+let curCount=1,pQ=[],pBusy=false;
+
+/* ═══ NAV ═══ */
+function goPage(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('page'+i).classList.toggle('active',i===n);
+    document.getElementById('tab'+i).classList.toggle('active',i===n);
+  });
+  if(n===2)initTicketing();
+  if(n===3)renderReport();
+}
+
+/* ═══ TOAST ═══ */
+function toast(msg,type=''){
+  const t=document.getElementById('toast-el');
+  t.textContent=msg;t.className='toast show'+(type?' t-'+type:'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2300);
+}
+
+/* ═══ VALIDATION ═══ */
+function setV(inp,errId,okId,ok){
+  const has=inp.value.length>0;
+  inp.classList.toggle('ok',ok&&has);
+  inp.classList.toggle('err',!ok&&has);
+  if(errId)document.getElementById(errId).style.display=(!ok&&has?'block':'none');
+  if(okId) document.getElementById(okId).style.display=(ok&&has?'block':'none');
+  return ok;
+}
+/* TN bus number: e.g. TN 39 N 1204  — 2 letters, space, 2 digits, space, 1 letter, space, 4 digits */
+function vBusNo(inp){
+  const v=inp.value.trim();
+  const ok=/^[A-Z]{2}\s\d{2}\s[A-Z]{1,2}\s\d{4}$/i.test(v);
+  setV(inp,'err-busno','ok-busno',ok);
+}
+function vRoute(inp){
+  const ok=/^[A-Za-z0-9 \-]{3,60}$/.test(inp.value.trim());
+  setV(inp,'err-route','ok-route',ok);
+}
+/* station name: 2–30 letters/spaces, no digits */
+function vStation(inp){
+  const ok=/^[A-Za-z\u0B80-\u0BFF ]{2,30}$/.test(inp.value.trim());
+  setV(inp,'err-sname','ok-sname',ok);
+}
+function vPosNum(inp,eId,oId,allowZero=false){
+  const v=parseFloat(inp.value);
+  const ok=!isNaN(v)&&(allowZero?v>=0:v>0);
+  setV(inp,eId,oId,ok);
+}
+
+/* ═══ PHASE 1 ═══ */
+function addStation(){
+  const ni=document.getElementById('inp-sname');
+  const di=document.getElementById('inp-sdist');
+  vStation(ni);vPosNum(di,'err-sdist','ok-sdist',true);
+  if(!ni.classList.contains('ok')){toast('Station name: letters and spaces only','err');return;}
+  if(!di.classList.contains('ok')&&di.value===''){toast('Enter a distance','err');return;}
+  const name=ni.value.trim(),dist=parseFloat(di.value);
+  if(db.tmpSt.some(s=>s.name.toLowerCase()===name.toLowerCase())){toast('"'+name+'" already added','err');return;}
+  db.tmpSt.push({name,km:dist});
+  db.tmpSt.sort((a,b)=>a.km-b.km);
+  ni.value='';di.value='';
+  ['ok-sname','ok-sdist'].forEach(id=>{document.getElementById(id).style.display='none';});
+  ni.classList.remove('ok');di.classList.remove('ok');
+  renderTmpSt();
+  toast('"'+name+'" added','ok');
+}
+function rmSt(i){db.tmpSt.splice(i,1);renderTmpSt();}
+function renderTmpSt(){
+  const tb=document.getElementById('st-tbody');
+  const tbl=document.getElementById('st-table');
+  const em=document.getElementById('st-empty');
+  if(!db.tmpSt.length){tbl.style.display='none';em.style.display='block';return;}
+  tbl.style.display='table';em.style.display='none';
+  tb.innerHTML=db.tmpSt.map((s,i)=>`<tr>
+    <td><span style="font-family:var(--font-mono);color:var(--ink3);">${String(i+1).padStart(2,'0')}</span></td>
+    <td>${s.name}${i===0?' <span style="font-size:10px;color:var(--blue);font-weight:600;">[START]</span>':''}</td>
+    <td><span class="km-badge">${s.km} km</span></td>
+    <td><button class="del-btn" onclick="rmSt(${i})">✕</button></td>
+  </tr>`).join('');
+}
+
+function saveBus(){
+  const num=document.getElementById('inp-busno').value.trim();
+  const rt=document.getElementById('inp-route').value.trim();
+  const fare=parseFloat(document.getElementById('inp-fare').value);
+  const kmf=parseFloat(document.getElementById('inp-kmfare').value);
+  if(!/^[A-Z]{2}\s\d{2}\s[A-Z]{1,2}\s\d{4}$/i.test(num)){toast('Invalid bus number format (e.g. TN 39 N 1204)','err');return;}
+  if(!/^[A-Za-z0-9 \-]{3,60}$/.test(rt)){toast('Invalid route name','err');return;}
+  if(isNaN(fare)||fare<=0){toast('Enter a valid base fare','err');return;}
+  if(isNaN(kmf)||kmf<=0){toast('Enter a valid fare per km','err');return;}
+  if(db.tmpSt.length<2){toast('Add at least 2 stations','err');return;}
+  db.buses.push({id:Date.now(),number:num,route:rt,fare,kmfare:kmf,stations:[...db.tmpSt]});
+  clearForm();renderBuses();toast('Bus "'+num+'" saved','ok');
+}
+function clearForm(){
+  ['inp-busno','inp-route','inp-fare','inp-kmfare','inp-sname','inp-sdist'].forEach(id=>{
+    const e=document.getElementById(id);e.value='';e.classList.remove('ok','err');
+  });
+  ['err-busno','err-route','err-fare','err-kmfare','err-sname','err-sdist',
+   'ok-busno','ok-route','ok-fare','ok-kmfare','ok-sname','ok-sdist'].forEach(id=>document.getElementById(id).style.display='none');
+  db.tmpSt=[];renderTmpSt();
+}
+function delBus(id){
+  db.buses=db.buses.filter(b=>b.id!==id);
+  if(db.activeBusId===id)db.activeBusId=null;
+  renderBuses();
+}
+function renderBuses(){
+  const wrap=document.getElementById('bus-list-wrap');
+  document.getElementById('bus-count').textContent=db.buses.length?db.buses.length+' registered':'';
+  if(!db.buses.length){wrap.innerHTML='<div class="empty-state"><div class="es-i">🚌</div><p>No buses registered yet.</p></div>';return;}
+  wrap.innerHTML='<div class="bus-grid">'+db.buses.map(b=>`
+    <div class="bus-card">
+      <div class="bus-icon">🚌</div>
+      <div style="flex:1;">
+        <div class="bus-number">${b.number}</div>
+        <div class="bus-route">${b.route}</div>
+        <div class="bus-meta">${b.stations.length} stations · ₹${b.fare} base · ₹${b.kmfare}/km</div>
+      </div>
+      <button class="btn btn-rust btn-sm" onclick="delBus(${b.id})">Delete</button>
+    </div>`).join('')+'</div>';
+}
+
+/* ═══ PHASE 2 ═══ */
+function initTicketing(){
+  if(!db.buses.length){
+    document.getElementById('machine-controls').innerHTML=`
+      <div style="text-align:center;padding:8px 0;">
+        <div style="color:#8a7040;font-family:var(--font-mono);font-size:11px;margin-bottom:10px;">No buses registered.</div>
+        <button class="btn btn-outline" style="width:100%;color:var(--amber);border-color:var(--amber);" onclick="goPage(1)">← Go to Setup</button>
+      </div>`;
+    setLed('ERROR · NO BUSES REGISTERED');return;
+  }
+  if(!db.activeBusId)showOverlay();
+  else renderControls();
+}
+
+function setLed(txt){
+  const e=document.getElementById('led-display');
+  if(e)e.textContent=txt;
+}
+
+function showOverlay(){
+  const ov=document.getElementById('overlay');
+  const list=document.getElementById('ov-list');
+  list.innerHTML=db.buses.map(b=>`
+    <div class="ov-bus-card" onclick="selectBus(${b.id})">
+      <div class="bus-icon">🚌</div>
+      <div style="flex:1;">
+        <div class="bus-number">${b.number}</div>
+        <div class="bus-route">${b.route}</div>
+        <div class="bus-meta">${b.stations.length} stations · ₹${b.kmfare}/km</div>
+      </div>
+    </div>`).join('');
+  ov.classList.add('show');
+}
+
+function selectBus(id){
+  db.activeBusId=id;db.tickets=[];db.tc=1;curCount=1;
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('ticket-log-list').innerHTML='<div class="log-empty">No tickets issued yet.</div>';
+  document.getElementById('log-count').textContent='0';
+  clearReceipt();renderControls();
+  const b=getBus();
+  setLed('BUS: '+b.number+' · READY');
+  toast('Bus selected — start ticketing!','ok');
+}
+
+function getBus(){return db.buses.find(b=>b.id===db.activeBusId);}
+
+function renderControls(){
+  const b=getBus();if(!b){showOverlay();return;}
+  const opts=b.stations.map((s,i)=>`<option value="${i}">${s.name} (${s.km} km)</option>`).join('');
+  document.getElementById('machine-controls').innerHTML=`
+    <div class="active-bus-strip">
+      <span style="font-size:18px;">🚌</span>
+      <div>
+        <div class="abs-num">${b.number}</div>
+        <div class="abs-route">${b.route}</div>
+      </div>
+    </div>
+    <div class="mc-label">Boarding Station</div>
+    <select class="mc-select" id="sel-from">${opts}</select>
+    <div class="mc-label">Departing Station</div>
+    <select class="mc-select" id="sel-to">${opts}</select>
+    <div class="mc-label">Passenger Count</div>
+    <div class="count-row">
+      <button class="cnt-btn" onclick="adjCount(-1)">−</button>
+      <div class="cnt-display" id="cnt-d">1</div>
+      <button class="cnt-btn" onclick="adjCount(1)">+</button>
+    </div>
+    <button class="print-btn" onclick="printTicket()">🖨 &nbsp;Print Ticket</button>`;
+  const toEl=document.getElementById('sel-to');
+  if(toEl&&toEl.options.length>1)toEl.selectedIndex=1;
+  curCount=1;
+}
+
+function adjCount(d){curCount=Math.max(1,curCount+d);const e=document.getElementById('cnt-d');if(e)e.textContent=curCount;}
+
+/* RECEIPT */
+function clearReceipt(){
+  document.getElementById('receipt-paper').innerHTML='<div style="text-align:center;color:#aaa;font-size:10px;padding:50px 0 0;">— ready to print —</div>';
+  pQ=[];pBusy=false;
+}
+function addLine(html,delay){pQ.push({html,delay:delay||55});if(!pBusy)nextLine();}
+function nextLine(){
+  if(!pQ.length){pBusy=false;return;}
+  pBusy=true;const{html,delay}=pQ.shift();
+  setTimeout(()=>{
+    const p=document.getElementById('receipt-paper');
+    const d=document.createElement('div');d.className='print-line';d.innerHTML=html;
+    p.appendChild(d);p.parentElement.scrollTop=p.parentElement.scrollHeight;
+    nextLine();
+  },delay);
+}
+function rc(t){return`<div class="r-center">${t}</div>`;}
+function rr(l,r,cls=''){return`<div class="r-row ${cls}"><span>${l}</span><span>${r}</span></div>`;}
+function toDay(){const d=new Date();return d.getDate().toString().padStart(2,'0')+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getFullYear();}
+function toTime(){const d=new Date();let h=d.getHours(),m=d.getMinutes().toString().padStart(2,'0');const a=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+a;}
+
+function printTicket(){
+  const b=getBus();if(!b)return;
+  const fi=parseInt(document.getElementById('sel-from').value);
+  const ti=parseInt(document.getElementById('sel-to').value);
+  if(fi===ti){toast('Boarding and departing must differ!','err');return;}
+  if(fi>ti){toast('Boarding must come before departing!','err');return;}
+  const fS=b.stations[fi],tS=b.stations[ti];
+  const dist=tS.km-fS.km;
+  const fare=parseFloat(((b.fare+dist*b.kmfare)*curCount).toFixed(2));
+  const no='#'+String(db.tc).padStart(5,'0'),time=toTime(),date=toDay();
+  clearReceipt();
+  setTimeout(()=>{
+    addLine(rc('<span class="r-bold">GOVERNMENT TRANSPORTATION</span>'),85);
+    addLine(rc('<span class="r-sm">OF TAMILNADU</span>'),65);
+    addLine(rc('<span class="r-sm">Kumbakonam District</span>'),65);
+    addLine('<hr class="r-dash"/>',55);
+    addLine(rr('Ticket No',no),75);
+    addLine(rr('Time',time),65);
+    addLine(rr('Date',date),65);
+    addLine(rr('Bus No',b.number),65);
+    addLine('<hr class="r-dash"/>',55);
+    addLine(rr('From',fS.name),75);
+    addLine(rr('To',tS.name),65);
+    addLine(rr('Distance',dist+' km'),65);
+    addLine(rr('Passengers',curCount),65);
+    addLine('<hr class="r-solid"/>',55);
+    addLine(rr('FARE','&#8377;'+fare.toFixed(2),'r-final'),95);
+    addLine('<hr class="r-dash"/>',55);
+    addLine(rc('<span class="r-thank">&#9733; Have a Safe Journey! &#9733;<br/>Thank you for travelling with TNSTC</span>'),100);
+    addLine('<div style="height:14px;"></div>',25);
+  },70);
+  setLed('TICKET '+no+' PRINTED · ₹'+fare.toFixed(2));
+  db.tickets.push({id:db.tc,busId:b.id,from:fS.name,to:tS.name,fromIdx:fi,toIdx:ti,count:curCount,fare,time,date});
+  db.tc++;renderLog();
+  toast('Ticket '+no+' printed!','ok');
+}
+
+function renderLog(){
+  document.getElementById('log-count').textContent=db.tickets.length;
+  const el=document.getElementById('ticket-log-list');
+  if(!db.tickets.length){el.innerHTML='<div class="log-empty">No tickets issued yet.</div>';return;}
+  el.innerHTML='<div class="log-list">'+[...db.tickets].reverse().map((t,i)=>`
+    <div class="log-item${i===0?' fresh':''}">
+      <div>
+        <div class="li-route">${t.from} → ${t.to}</div>
+        <div class="li-meta">${t.count} pax · ${t.time} · ${t.date}</div>
+      </div>
+      <div>
+        <div class="li-fare">₹${t.fare.toFixed(2)}</div>
+        <div class="li-no">#${String(t.id).padStart(5,'0')}</div>
+      </div>
+    </div>`).join('')+'</div>';
+}
+
+function endJourney(){
+  if(!db.tickets.length){toast('Issue at least one ticket first!','err');return;}
+  db.activeBusId=null;goPage(3);
+}
+
+/* ═══ PHASE 3 ═══ */
+function renderReport(){
+  const el=document.getElementById('report-wrap');
+  if(!db.tickets.length){el.innerHTML='<div class="empty-state"><div class="es-i">📊</div><p>Complete a journey to view the report.</p></div>';return;}
+  const b=db.buses.find(x=>x.id===db.tickets[0].busId);
+  const tTix=db.tickets.length;
+  const tPax=db.tickets.reduce((s,t)=>s+t.count,0);
+  const tRev=db.tickets.reduce((s,t)=>s+t.fare,0);
+  const avg=tRev/tPax;
+  const bMap={},aMap={};
+  if(b){b.stations.forEach(s=>{bMap[s.name]=0;aMap[s.name]=0;});}
+  db.tickets.forEach(t=>{
+    if(bMap[t.from]!==undefined)bMap[t.from]+=t.count;
+    if(aMap[t.to]!==undefined)aMap[t.to]+=t.count;
+  });
+  const maxB=Math.max(...Object.values(bMap),1);
+  el.innerHTML=`
+    <div class="stats-row">
+      <div class="stat-box sb-blue"><div class="stat-val">${tTix}</div><div class="stat-lbl">Tickets Issued</div></div>
+      <div class="stat-box sb-green"><div class="stat-val">${tPax}</div><div class="stat-lbl">Total Passengers</div></div>
+      <div class="stat-box sb-rust"><div class="stat-val">₹${tRev.toFixed(2)}</div><div class="stat-lbl">Total Revenue</div></div>
+      <div class="stat-box sb-amber"><div class="stat-val">₹${avg.toFixed(2)}</div><div class="stat-lbl">Avg Fare / Pax</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="ch-ico">📍</div><div class="ch-title">Boarding Passengers per Station</div></div>
+      <div class="card-body">
+        <table class="r3-table">
+          <thead><tr><th>Station</th><th>Boarded</th><th>Alighted</th><th style="width:180px;">Load</th></tr></thead>
+          <tbody>${b?b.stations.map(s=>`<tr>
+            <td style="font-family:var(--font-mono);">${s.name}</td>
+            <td style="font-family:var(--font-mono);font-weight:600;color:var(--blue);">${bMap[s.name]||0}</td>
+            <td style="font-family:var(--font-mono);color:var(--green);">${aMap[s.name]||0}</td>
+            <td><div style="display:flex;align-items:center;gap:8px;">
+              <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round((bMap[s.name]||0)/maxB*100)}%"></div></div>
+              <span style="font-size:11px;color:var(--ink3);min-width:22px;font-family:var(--font-mono);">${bMap[s.name]||0}</span>
+            </div></td>
+          </tr>`).join(''):''}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="ch-ico">🎫</div><div class="ch-title">All Tickets This Journey</div></div>
+      <div class="card-body">
+        <table class="r3-table">
+          <thead><tr><th>Ticket</th><th>From → To</th><th>Pax</th><th>Fare</th><th>Time</th></tr></thead>
+          <tbody>${db.tickets.map(t=>`<tr>
+            <td style="font-family:var(--font-mono);color:var(--ink3);">#${String(t.id).padStart(5,'0')}</td>
+            <td>${t.from} → ${t.to}</td>
+            <td>${t.count}</td>
+            <td style="font-family:var(--font-mono);font-weight:600;color:var(--green);">₹${t.fare.toFixed(2)}</td>
+            <td style="font-family:var(--font-mono);color:var(--ink3);">${t.time}</td>
+          </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="btn btn-blue" onclick="newJourney()">Start New Journey →</button>
+    </div>`;
+}
+
+function newJourney(){
+  db.tickets=[];db.tc=1;db.activeBusId=null;
+  clearReceipt();goPage(2);
+}
+</script>
+</body>
+</html>
